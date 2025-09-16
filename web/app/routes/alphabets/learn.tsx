@@ -1,6 +1,6 @@
 import { Link } from "react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, BookOpen, PencilLine } from "lucide-react";
+import react, { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Settings2, Volume2, Type, CaseUpper, CaseLower } from "lucide-react";
 
 /** Guarded TTS helper (safe during SSR) */
 function say(text: string) {
@@ -38,25 +38,49 @@ const letterSound: Record<string, string> = {
   u: "u as in umbrella",
   v: "v as in van",
   w: "w as in window",
-  x: "x as in fox", // end sound
+  x: "x as in fox",
   y: "y as in yellow",
   z: "z as in zebra",
 };
 
 const letters = "abcdefghijklmnopqrstuvwxyz".split("");
 
-export default function LearnPage() {
+// LocalStorage keys
+const LS_MODE = "alpha_learn_mode"; // "name" | "sound"
+const LS_CASE = "alpha_learn_upper"; // "1" | "0"
+
+export default function AlphabetLearn(): react.JSX.Element {
   const [mode, setMode] = useState<"sound" | "name">("name");
-  const [uppercase, setUppercase] = useState(true);
+  const [uppercase, setUppercase] = useState<boolean>(true);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [controlsOpen, setControlsOpen] = useState<boolean>(false);
   const buttonsRef = useRef<Array<HTMLButtonElement | null>>([]);
+
+  // hydrate prefs from localStorage
+  useEffect(() => {
+    try {
+      const m = localStorage.getItem(LS_MODE);
+      if (m === "name" || m === "sound") setMode(m);
+      const c = localStorage.getItem(LS_CASE);
+      if (c === "0" || c === "1") setUppercase(c === "1");
+    } catch { }
+  }, []);
+
+  // persist prefs
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_MODE, mode);
+      localStorage.setItem(LS_CASE, uppercase ? "1" : "0");
+    } catch { }
+  }, [mode, uppercase]);
+
+  const lettersDisplay = useMemo(() => letters.map((l) => (uppercase ? l.toUpperCase() : l)), [uppercase]);
 
   const speak = (i: number) => {
     const l = letters[i];
     if (mode === "name") say(uppercase ? l.toUpperCase() : l);
     else say(letterSound[l]);
     setActiveIndex(i);
-    // brief visual pulse
     setTimeout(() => setActiveIndex(null), 180);
   };
 
@@ -72,7 +96,6 @@ export default function LearnPage() {
       const idx = letters.indexOf(ch);
       if (idx >= 0) {
         speak(idx);
-        // move focus to the pressed letter’s button (accessibility)
         buttonsRef.current[idx]?.focus();
       }
     };
@@ -82,114 +105,170 @@ export default function LearnPage() {
     }
   }, [uppercase, mode]);
 
-
   return (
-    <main className="min-h-screen flex flex-col bg-[#FDF7FB]">
-      {/* Header bar (Peppa-esque palette, no IP assets) */}
-      <header className="sticky top-0 z-10">
-        <div className="h-16 w-full bg-[#FFD1E8] border-b-2 border-[#FFD1E8] shadow-[0_2px_0_#FFB3D6] flex items-center px-4">
-          <h1 className="font-extrabold text-[#7B2E4A] text-lg sm:text-xl">
-            {/* Top bar */}
-      <div className="relative z-10 navbar bg-transparent p-4">
-        <div className="flex-1">
-          <Link to="/alphabets" className="btn btn-ghost gap-2 hover:bg-transparent hover:text-current hover:border-none"><ArrowLeft className="w-5 h-5" /> Back</Link>
-        </div>
+    <main className="relative min-h-screen bg-gradient-to-b from-sky-200 to-sky-100 overflow-hidden">
+      {/* Background scene */}
+      <PeppaBackdrop />
+
+      <div className="relative z-10 p-4 flex justify-between">
+        <Link to="/alphabets" className="btn btn-sm md:btn-md rounded-full bg-white/80 hover:bg-white border-2 border-white shadow-sm gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          <span className="font-semibold">Back</span>
+        </Link>
+
+        <button className="btn btn-primary rounded-full gap-2" onClick={() => setControlsOpen(true)} aria-haspopup="dialog" aria-controls="controls_modal">
+          <Settings2 className="w-4 h-4" /> Controls
+        </button>
       </div>
-          </h1>
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-[#7B2E4A] font-semibold mr-1">Mode</span>
-            <div className="join">
-              <button
-                className={
-                  "join-item btn btn-sm rounded-full border-2 " +
-                  (mode === "sound"
-                    ? "bg-[#FFB3D6] border-[#FF79C7] text-[#7B2E4A]"
-                    : "bg-white border-[#FF79C7] text-[#7B2E4A]")
-                }
-                onClick={() => setMode("sound")}
-                aria-pressed={mode === "sound"}
-              >
-                Sound
-              </button>
-              <button
-                className={
-                  "join-item btn btn-sm rounded-full border-2 " +
-                  (mode === "name"
-                    ? "bg-[#FFB3D6] border-[#FF79C7] text-[#7B2E4A]"
-                    : "bg-white border-[#FF79C7] text-[#7B2E4A]")
-                }
-                onClick={() => setMode("name")}
-                aria-pressed={mode === "name"}
-              >
-                Name
-              </button>
+
+
+
+
+      {/* Letter grid */}
+      <section className="relative z-10 px-4 sm:px-6 lg:px-8 pb-24">
+        <div className="mx-auto max-w-6xl mt-6 grid grid-cols-6 md:grid-cols-9 gap-2 md:gap-3">
+          {letters.map((l, i) => (
+            <LetterTile
+              key={l}
+              letter={lettersDisplay[i]}
+              raw={l}
+              active={activeIndex === i}
+              onClick={() => speak(i)}
+              buttonRef={(el) => (buttonsRef.current[i] = el)}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Controls Modal (DaisyUI dialog) */}
+      <dialog id="controls_modal" className={`modal ${controlsOpen ? "modal-open" : ""}`} onClose={() => setControlsOpen(false)}>
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Learning Controls</h3>
+          <p className="opacity-70 text-sm mb-4">Choose what you hear and how letters look.</p>
+
+          <div className="space-y-6">
+            {/* Mode */}
+            <div>
+              <div className="mb-2 font-semibold flex items-center gap-2"><Volume2 className="w-4 h-4" /> Mode</div>
+              <div className="join">
+                <button
+                  className={`join-item btn ${mode === "name" ? "btn-primary" : "btn-ghost"}`}
+                  onClick={() => setMode("name")}
+                  aria-pressed={mode === "name"}
+                >
+                  Name (A, Bee, C)
+                </button>
+                <button
+                  className={`join-item btn ${mode === "sound" ? "btn-primary" : "btn-ghost"}`}
+                  onClick={() => setMode("sound")}
+                  aria-pressed={mode === "sound"}
+                >
+                  Sound (a as in apple)
+                </button>
+              </div>
             </div>
 
-            <span className="text-[#7B2E4A] font-semibold mx-2">Case</span>
-            <div className="join">
-              <button
-                className={
-                  "join-item btn btn-sm rounded-full border-2 " +
-                  (uppercase
-                    ? "bg-[#FFB3D6] border-[#FF79C7] text-[#7B2E4A]"
-                    : "bg-white border-[#FF79C7] text-[#7B2E4A]")
-                }
-                onClick={() => setUppercase(true)}
-                aria-pressed={uppercase}
-              >
-                UPPER
-              </button>
-              <button
-                className={
-                  "join-item btn btn-sm rounded-full border-2 " +
-                  (!uppercase
-                    ? "bg-[#FFB3D6] border-[#FF79C7] text-[#7B2E4A]"
-                    : "bg-white border-[#FF79C7] text-[#7B2E4A]")
-                }
-                onClick={() => setUppercase(false)}
-                aria-pressed={!uppercase}
-              >
-                lower
-              </button>
+            {/* Case */}
+            <div>
+              <div className="mb-2 font-semibold flex items-center gap-2"><Type className="w-4 h-4" /> Case</div>
+              <div className="join">
+                <button
+                  className={`join-item btn ${uppercase ? "btn-secondary" : "btn-ghost"}`}
+                  onClick={() => setUppercase(true)}
+                  aria-pressed={uppercase}
+                >
+                  <CaseUpper className="w-4 h-4 mr-1" /> UPPERCASE
+                </button>
+                <button
+                  className={`join-item btn ${!uppercase ? "btn-secondary" : "btn-ghost"}`}
+                  onClick={() => setUppercase(false)}
+                  aria-pressed={!uppercase}
+                >
+                  <CaseLower className="w-4 h-4 mr-1" /> lowercase
+                </button>
+              </div>
             </div>
           </div>
+
+          <div className="modal-action">
+            <button className="btn" onClick={() => setControlsOpen(false)}>Done</button>
+          </div>
         </div>
+        <form method="dialog" className="modal-backdrop" onClick={() => setControlsOpen(false)}>
+          <button>close</button>
+        </form>
+      </dialog>
 
-      </header>
-
-      {/* Content */}
-      <section className="flex-1 px-4 pb-10">
-
-        {/* Letter grid */}
-        <div className="max-w-6xl mx-auto grid grid-cols-6 md:grid-cols-9 gap-2 mt-5 ">
-          {letters.map((l, i) => {
-            const show = uppercase ? l.toUpperCase() : l;
-            const active = activeIndex === i;
-            return (
-              <button
-                key={l}
-                ref={(el) => { buttonsRef.current[i] = el; }}
-                onClick={() => speak(i)}
-                className={[
-                  "relative aspect-square select-none",
-                  "rounded-2xl border-2 transition transform",
-                  active
-                    ? "bg-[#FFF6FB] border-[#FF79C7] scale-[0.98] shadow-[0_5px_0_#FFD1E8]"
-                    : "bg-white border-[#FFD1E8] hover:border-[#FF79C7] hover:shadow-[0_5px_0_#FFD1E8]",
-                  "focus:outline-none focus-visible:ring-4 focus-visible:ring-pink-200",
-                ].join(" ")}
-                aria-label={`Letter ${show}. ${mode === "sound" ? letterSound[l] : "Letter name"}`}
-              >
-                <span className="absolute inset-0 grid place-items-center font-extrabold text-[#7B2E4A] text-5xl sm:text-6xl">
-                  {show}
-                </span>                
-              </button>
-            );
-          })}
-        </div>
-
-        
-      </section>
+      {/* Bottom hill overlay */}
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-green-300/80 to-green-200/20" />
     </main>
+  );
+}
+
+// ————————————————————————————————————————————————
+// Letter tile – shows image if present, otherwise a big friendly letter
+// ————————————————————————————————————————————————
+
+type LetterTileProps = {
+  letter: string; // displayed (upper/lower)
+  raw: string; // lowercase key 'a'..'z'
+  active: boolean;
+  onClick: () => void;
+  buttonRef: (el: HTMLButtonElement | null) => void;
+};
+
+function LetterTile({ letter, raw, active, onClick, buttonRef }: LetterTileProps): React.JSX.Element {
+  return (
+    <button
+      ref={buttonRef}
+      onClick={onClick}
+      className={[
+        "relative aspect-square select-none rounded-2xl border-2 transition",
+        active
+          ? "bg-[#FFF6FB] border-[#FF79C7] scale-[0.98] shadow-[0_5px_0_#FFD1E8]"
+          : "bg-white/90 border-[#FFD1E8] hover:border-[#FF79C7] hover:shadow-[0_5px_0_#FFD1E8]",
+        "focus:outline-none focus-visible:ring-4 focus-visible:ring-pink-200",
+      ].join(" ")}
+      aria-label={`Letter ${letter}. ${letterSound[raw]}`}
+    >
+      <div className="absolute inset-0 p-2 grid place-items-center">
+        <span className="font-extrabold text-[#7B2E4A] text-5xl sm:text-6xl">{letter}</span>
+      </div>
+    </button>
+  );
+}
+
+// ————————————————————————————————————————————————
+// Background scene: clouds + sun + hills (Peppa-ish vibe)
+// ————————————————————————————————————————————————
+
+function PeppaBackdrop(): react.JSX.Element {
+  return (
+    <div className="absolute inset-0 -z-0" aria-hidden>
+      {/* sun */}
+      <div className="absolute right-6 top-6 w-20 h-20 rounded-full bg-yellow-300 shadow-[0_0_0_6px_rgba(253,224,71,0.5)]" />
+
+      {/* clouds */}
+      <Cloud className="absolute left-8 top-14 scale-100" />
+      <Cloud className="absolute right-16 top-24 scale-75" />
+      <Cloud className="absolute left-1/2 top-10 -translate-x-1/2 scale-90" />
+
+      {/* hills */}
+      <div className="absolute -bottom-16 -left-10 w-80 h-48 bg-green-300 rounded-[50%] blur-[1px]" />
+      <div className="absolute -bottom-20 left-40 w-96 h-56 bg-green-400 rounded-[50%] blur-[1px]" />
+      <div className="absolute -bottom-24 right-0 w-96 h-52 bg-green-300 rounded-[50%] blur-[1px]" />
+    </div>
+  );
+}
+
+function Cloud({ className = "" }: { className?: string }): react.JSX.Element {
+  return (
+    <div className={"text-white/90 drop-shadow " + className}>
+      <div className="flex items-center gap-1">
+        <div className="bg-white w-14 h-8 rounded-full" />
+        <div className="bg-white w-10 h-10 rounded-full -ml-3" />
+        <div className="bg-white w-16 h-9 rounded-full -ml-4" />
+      </div>
+    </div>
   );
 }
