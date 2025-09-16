@@ -46,7 +46,7 @@ export default function AlphabetLanding(): react.JSX.Element {
                   Pick <span className="font-semibold">Learn</span> to hear and see letters, or choose <span className="font-semibold">Test</span> to check what you know!
                 </p>
                 <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Link to="/alphabets/learn" className="card bg-gradient-to-br from-pink-200 via-rose-200 to-amber-200 border border-base-300 hover:shadow-2xl transition">
+                  <Link to="/alphabets/learn" className="card bg-gradient-to-br from-pink-400 via-red-300 to-grey-200 border border-base-300 hover:shadow-2xl transition">
                     <div className="card-body">
                       <div className="flex items-center gap-3">
                         <div className="mask mask-squircle p-3 bg-primary text-primary-content shadow-inner">
@@ -61,7 +61,7 @@ export default function AlphabetLanding(): react.JSX.Element {
                     </div>
                   </Link>
 
-                  <Link to="/alphabets/test" className="card bg-gradient-to-br from-amber-200 via-yellow-200 to-lime-200 border border-base-300 hover:shadow-2xl transition">
+                  <Link to="/alphabets/test" className="card bg-gradient-to-br from-green-200 via-lemon-500 to-gray-200 border border-base-300 hover:shadow-2xl transition">
                     <div className="card-body">
                       <div className="flex items-center gap-3">
                         <div className="mask mask-squircle p-3 bg-secondary text-secondary-content shadow-inner">
