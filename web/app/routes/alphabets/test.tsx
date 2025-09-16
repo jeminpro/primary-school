@@ -20,64 +20,12 @@ function say(text: string) {
   window.speechSynthesis.speak(u);
 }
 
-/** Simple phonics lines (tweak to your curriculum) */
-/*
+/** Simple phonics lines */
 const letterSound: Record<string, string> = {
-  a: "a as in apple",
-  b: "b as in ball",
-  c: "c as in cat",
-  d: "d as in dog",
-  e: "e as in egg",
-  f: "f as in fish",
-  g: "g as in goat",
-  h: "h as in hat",
-  i: "i as in insect",
-  j: "j as in jam",
-  k: "k as in kite",
-  l: "l as in lion",
-  m: "m as in moon",
-  n: "n as in nose",
-  o: "o as in orange",
-  p: "p as in pig",
-  q: "q as in queen",
-  r: "r as in rabbit",
-  s: "s as in sun",
-  t: "t as in tiger",
-  u: "u as in umbrella",
-  v: "v as in van",
-  w: "w as in window",
-  x: "x as in fox",
-  y: "y as in yellow",
-  z: "z as in zebra",
-};
-*/
-const letterSound: Record<string, string> = {
-  a: "a",
-  b: "b",
-  c: "c",
-  d: "d",
-  e: "e",
-  f: "f",
-  g: "g",
-  h: "h",
-  i: "i",
-  j: "j",
-  k: "k",
-  l: "l",
-  m: "m",
-  n: "n",
-  o: "o",
-  p: "p",
-  q: "q",
-  r: "r",
-  s: "s",
-  t: "t",
-  u: "u",
-  v: "v",
-  w: "w",
-  x: "x",
-  y: "y",
-  z: "z",
+  a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h",
+  i: "i", j: "j", k: "k", l: "l", m: "m", n: "n", o: "o", p: "p",
+  q: "q", r: "r", s: "s", t: "t", u: "u", v: "v", w: "w", x: "x",
+  y: "y", z: "z",
 };
 
 const letters = "abcdefghijklmnopqrstuvwxyz".split("");
@@ -102,7 +50,7 @@ function LetterTile({ letter, raw, onClick, highlight = "none" }: LetterTileProp
         : "bg-white/90 border-[#FFD1E8] hover:border-[#FF79C7] hover:shadow-[0_5px_0_#FFD1E8]";
   return (
     <button className={`${base} ${style}`} onClick={onClick} aria-label={`Choose ${letter}`}>
-      <span className="font-extrabold text-[#7B2E4A] text-4xl sm:text-5xl">{letter}</span>
+      <span className="font-extrabold text-[#7B2E4A] text-5xl">{letter}</span>
     </button>
   );
 }
@@ -129,6 +77,16 @@ function sampleQuestions(pool: string[], n: number): string[] {
   return out;
 }
 
+// NEW: light shuffle helper (for grid order)
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // ————————————————————————————————————————————————
 // Main component
 // ————————————————————————————————————————————————
@@ -147,13 +105,20 @@ export default function AlphabetTest(): react.JSX.Element {
   const [flash, setFlash] = useState<"correct" | "wrong" | null>(null);
   const [controlsOpen, setControlsOpen] = useState(false);
 
+  // NEW: toggle for juggling grid order (default NO)
+  const [shuffleGrid, setShuffleGrid] = useState<boolean>(false);
+
   const choicePool = useMemo(() => {
     if (selectMode === "all") return letters;
     const arr = Array.from(customSet);
     return arr.length ? arr : letters; // safe fallback
   }, [selectMode, customSet]);
 
-  const displayPool = useMemo(() => choicePool.map((l) => (uppercase ? l.toUpperCase() : l)), [choicePool, uppercase]);
+  // CHANGED: respect shuffleGrid for the choices grid
+  const displayPool = useMemo(() => {
+    const base = shuffleGrid ? shuffle(choicePool) : choicePool;
+    return base.map((l) => (uppercase ? l.toUpperCase() : l));
+  }, [choicePool, uppercase, shuffleGrid]);
 
   const currentLetter = questions[index]; // lower-case
   const displayLetter = uppercase && currentLetter ? currentLetter.toUpperCase() : currentLetter;
@@ -184,7 +149,7 @@ export default function AlphabetTest(): react.JSX.Element {
     const isCorrect = guess === target;
     setResults((prev) => [...prev, { target, guess, correct: isCorrect }]);
     setFlash(isCorrect ? "correct" : "wrong");
-    // auto-advance after a short pause
+    // CHANGED: pause 2 seconds before advancing
     setTimeout(() => {
       setFlash(null);
       if (index + 1 < questions.length) {
@@ -193,7 +158,7 @@ export default function AlphabetTest(): react.JSX.Element {
       } else {
         setFinished(true);
       }
-    }, 700);
+    }, 1500);
   }
 
   function resetTest() {
@@ -220,7 +185,6 @@ export default function AlphabetTest(): react.JSX.Element {
             <ArrowLeft className="w-4 h-4" />
             <span className="font-semibold">Back</span>
           </Link>
-
         </div>
       </div>
 
@@ -268,7 +232,7 @@ export default function AlphabetTest(): react.JSX.Element {
       {/* Grid of choices (running) */}
       {started && !finished && (
         <section className="relative z-10 px-4 sm:px-6 lg:px-8 pb-24">
-          <div className="mx-auto max-w-6xl mt-6 grid grid-cols-4 md:grid-cols-9 gap-2 md:gap-3">
+          <div className="mx-auto max-w-6xl mt-6 grid grid-cols-4 md:grid-cols-9 gap-1 md:gap-3">
             {displayPool.map((disp) => (
               <LetterTile
                 key={disp}
@@ -385,6 +349,27 @@ export default function AlphabetTest(): react.JSX.Element {
                   </div>
                 </div>
 
+                {/* NEW: Alphabet order */}
+                <div>
+                  <div className="mb-2 font-semibold">Alphabet order</div>
+                  <div className="join">
+                    <button
+                      type="button"
+                      className={`join-item btn ${!shuffleGrid ? "btn-secondary" : "btn-ghost"}`}
+                      onClick={() => setShuffleGrid(false)}
+                    >
+                      A → Z
+                    </button>
+                    <button
+                      type="button"
+                      className={`join-item btn ${shuffleGrid ? "btn-secondary" : "btn-ghost"}`}
+                      onClick={() => setShuffleGrid(true)}
+                    >
+                      Shuffle
+                    </button>
+                  </div>
+                </div>
+
                 {/* Number of questions */}
                 <div>
                   <div className="mb-2 font-semibold">Number of questions</div>
@@ -417,7 +402,6 @@ export default function AlphabetTest(): react.JSX.Element {
         </section>
       )}
 
-
       {/* Results */}
       {finished && (
         <section className="relative z-10 px-6 lg:px-8 pb-24">
@@ -429,6 +413,17 @@ export default function AlphabetTest(): react.JSX.Element {
                   Score: {results.filter((r) => r.correct).length} / {results.length}
                 </div>
               </div>
+
+              {/* NEW: Dancing pig on perfect score */}
+              {(() => {
+                const allCorrect = results.length > 0 && results.every((r) => r.correct);
+                return allCorrect ? (
+                  <div className="mt-4 flex justify-center">
+                    
+                    <img src="https://i.giphy.com/Pq2fdlMQwFvQvBTd0e.webp" alt="Dancing pig" className="h-40" />
+                  </div>
+                ) : null;
+              })()}
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {results.map((r, i) => {
@@ -510,6 +505,34 @@ function Cloud({ className = "" }: { className?: string }): react.JSX.Element {
         <div className="bg-white w-10 h-10 rounded-full -ml-3" />
         <div className="bg-white w-16 h-9 rounded-full -ml-4" />
       </div>
+    </div>
+  );
+}
+
+/* ===== NEW: Dancing Pig components for perfect score ===== */
+function PigMascot({ className = "w-32 h-32" }: { className?: string }): react.JSX.Element {
+  return (
+    <svg viewBox="0 0 200 200" className={className} aria-hidden>
+      <circle cx="100" cy="100" r="70" fill="#F7B2C2" stroke="#E07A98" strokeWidth="4" />
+      <path d="M55 40c-12 0-18 10-10 20 10 12 26 6 26-6 0-8-6-14-16-14z" fill="#F7B2C2" stroke="#E07A98" strokeWidth="4" />
+      <path d="M145 40c12 0 18 10 10 20-10 12-26 6-26-6 0-8 6-14 16-14z" fill="#F7B2C2" stroke="#E07A98" strokeWidth="4" />
+      <circle cx="80" cy="95" r="8" fill="#222" />
+      <circle cx="120" cy="95" r="8" fill="#222" />
+      <ellipse cx="100" cy="120" rx="28" ry="20" fill="#F9C6D2" stroke="#E07A98" strokeWidth="3" />
+      <circle cx="92" cy="120" r="4" fill="#E07A98" />
+      <circle cx="108" cy="120" r="4" fill="#E07A98" />
+      <path d="M80 140c12 10 28 10 40 0" fill="none" stroke="#222" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function DancingPig(): react.JSX.Element {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3">
+      <div className="text-3xl">🎉🎉🎉</div>
+      <PigMascot className="w-36 h-36 animate-bounce" />
+      <div className="text-xl font-bold text-success">Perfect score!</div>
+      <div className="text-sm opacity-70">Amazing work!</div>
     </div>
   );
 }
