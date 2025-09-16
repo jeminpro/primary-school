@@ -2,7 +2,6 @@ import { Link } from "react-router";
 import react, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
-  Settings2,
   Volume2,
   Check,
   X as XIcon,
@@ -22,6 +21,7 @@ function say(text: string) {
 }
 
 /** Simple phonics lines (tweak to your curriculum) */
+/*
 const letterSound: Record<string, string> = {
   a: "a as in apple",
   b: "b as in ball",
@@ -50,6 +50,35 @@ const letterSound: Record<string, string> = {
   y: "y as in yellow",
   z: "z as in zebra",
 };
+*/
+const letterSound: Record<string, string> = {
+  a: "a",
+  b: "b",
+  c: "c",
+  d: "d",
+  e: "e",
+  f: "f",
+  g: "g",
+  h: "h",
+  i: "i",
+  j: "j",
+  k: "k",
+  l: "l",
+  m: "m",
+  n: "n",
+  o: "o",
+  p: "p",
+  q: "q",
+  r: "r",
+  s: "s",
+  t: "t",
+  u: "u",
+  v: "v",
+  w: "w",
+  x: "x",
+  y: "y",
+  z: "z",
+};
 
 const letters = "abcdefghijklmnopqrstuvwxyz".split("");
 
@@ -69,10 +98,10 @@ function LetterTile({ letter, raw, onClick, highlight = "none" }: LetterTileProp
     highlight === "correct"
       ? "bg-emerald-50 border-emerald-300 shadow-[0_5px_0_#86efac]"
       : highlight === "wrong"
-      ? "bg-rose-50 border-rose-300 shadow-[0_5px_0_#fda4af]"
-      : "bg-white/90 border-[#FFD1E8] hover:border-[#FF79C7] hover:shadow-[0_5px_0_#FFD1E8]";
+        ? "bg-rose-50 border-rose-300 shadow-[0_5px_0_#fda4af]"
+        : "bg-white/90 border-[#FFD1E8] hover:border-[#FF79C7] hover:shadow-[0_5px_0_#FFD1E8]";
   return (
-    <button className={`${base} ${style}`} onClick={onClick} aria-label={`Choose ${letter}`}> 
+    <button className={`${base} ${style}`} onClick={onClick} aria-label={`Choose ${letter}`}>
       <span className="font-extrabold text-[#7B2E4A] text-4xl sm:text-5xl">{letter}</span>
     </button>
   );
@@ -253,158 +282,141 @@ export default function AlphabetTest(): react.JSX.Element {
         </section>
       )}
 
-      {/* Setup modal (before start or to restart) */}
-      <dialog
-        id="test_controls_modal"
-        className={`modal ${controlsOpen ? "modal-open" : ""}`}
-        onClose={() => setControlsOpen(false)}
-      >
-        <div className="modal-box max-w-3xl">
-          <h3 className="font-bold text-lg">Alphabet Test Setup</h3>
-          <p className="opacity-70 text-sm mb-4">Choose letters, case, and how many questions.</p>
-
-          <div className="space-y-6">
-            {/* Letters: All or Specific */}
-            <div>
-              <div className="mb-2 font-semibold">Letters</div>
-              <div className="join">
-                <button
-                  className={`join-item btn ${selectMode === "all" ? "btn-primary" : "btn-ghost"}`}
-                  onClick={() => setSelectMode("all")}
-                >
-                  All (A–Z)
-                </button>
-                <button
-                  className={`join-item btn ${selectMode === "custom" ? "btn-primary" : "btn-ghost"}`}
-                  onClick={() => setSelectMode("custom")}
-                >
-                  Choose letters
-                </button>
-              </div>
-
-              {selectMode === "custom" && (
-                <div className="mt-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm opacity-70">Tap letters to toggle. Selected: {customSet.size}</div>
-                    <div className="space-x-2">
-                      <button
-                        className="btn btn-xs"
-                        onClick={() => setCustomSet(new Set(letters))}
-                        type="button"
-                      >
-                        Select all
-                      </button>
-                      <button
-                        className="btn btn-xs"
-                        onClick={() => setCustomSet(new Set())}
-                        type="button"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-8 gap-2">
-                    {letters.map((l) => {
-                      const chosen = customSet.has(l);
-                      const disp = uppercase ? l.toUpperCase() : l;
-                      return (
-                        <button
-                          key={l}
-                          type="button"
-                          onClick={() =>
-                            setCustomSet((prev) => {
-                              const next = new Set(prev);
-                              if (next.has(l)) next.delete(l);
-                              else next.add(l);
-                              return next;
-                            })
-                          }
-                          className={
-                            "btn btn-sm " + (chosen ? "btn-secondary" : "btn-ghost")
-                          }
-                        >
-                          {disp}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Case */}
-            <div>
-              <div className="mb-2 font-semibold">Case</div>
-              <div className="join">
-                <button
-                  className={`join-item btn ${uppercase ? "btn-secondary" : "btn-ghost"}`}
-                  onClick={() => setUppercase(true)}
-                >
-                  <CaseUpper className="w-4 h-4 mr-1" /> UPPERCASE
-                </button>
-                <button
-                  className={`join-item btn ${!uppercase ? "btn-secondary" : "btn-ghost"}`}
-                  onClick={() => setUppercase(false)}
-                >
-                  <CaseLower className="w-4 h-4 mr-1" /> lowercase
-                </button>
-              </div>
-            </div>
-
-            {/* Number of questions */}
-            <div>
-              <div className="mb-2 font-semibold">Number of questions</div>
-              <div className="join">
-                {[10, 20, 30].map((n) => (
-                  <button
-                    key={n}
-                    className={`join-item btn ${qCount === n ? "btn-primary" : "btn-ghost"}`}
-                    onClick={() => setQCount(n as 10 | 20 | 30)}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="modal-action">
-            {!started || finished ? (
-              <button
-                className="btn btn-primary"
-                onClick={startTest}
-                disabled={selectMode === "custom" && customSet.size === 0}
-              >
-                Start
-              </button>
-            ) : (
-              <button className="btn" onClick={resetTest}>Reset</button>
-            )}
-            <button className="btn" onClick={() => setControlsOpen(false)}>Close</button>
-          </div>
-        </div>
-        <form method="dialog" className="modal-backdrop" onClick={() => setControlsOpen(false)}>
-          <button>close</button>
-        </form>
-      </dialog>
-
-      {/* When not started or finished, nudge to open Setup */}
+      {/* Inline Setup (initial screen) */}
       {!started && !finished && (
         <section className="relative z-10 px-4 sm:px-6 lg:px-8 pb-24">
-          <div className="mx-auto max-w-3xl mt-8 text-center">
+          <div className="mx-auto max-w-3xl mt-8">
             <div className="rounded-3xl bg-base-100/70 backdrop-blur border border-base-200 shadow-xl p-6">
-              <h2 className="text-2xl font-bold">Ready to test your letters?</h2>
-              <p className="opacity-70 mt-1">Tap <span className="font-semibold">Setup</span> to choose letters, case, and how many questions. Then press <span className="font-semibold">Start</span>.</p>
-              <div className="mt-4">
-                <button className="btn btn-primary" onClick={() => setControlsOpen(true)}>
-                  <Settings2 className="w-4 h-4 mr-2" /> Setup & Start
+              <h2 className="text-2xl font-bold text-center">Ready to test your letters?</h2>
+              <p className="opacity-70 mt-1 text-center">
+                Choose your options and press <span className="font-semibold">Start</span>.
+              </p>
+
+              <div className="mt-6 space-y-6">
+                {/* Letters: All or Specific */}
+                <div>
+                  <div className="mb-2 font-semibold">Letters</div>
+                  <div className="join">
+                    <button
+                      className={`join-item btn ${selectMode === "all" ? "btn-primary" : "btn-ghost"}`}
+                      onClick={() => setSelectMode("all")}
+                      type="button"
+                    >
+                      All (A–Z)
+                    </button>
+                    <button
+                      className={`join-item btn ${selectMode === "custom" ? "btn-primary" : "btn-ghost"}`}
+                      onClick={() => setSelectMode("custom")}
+                      type="button"
+                    >
+                      Choose letters
+                    </button>
+                  </div>
+
+                  {selectMode === "custom" && (
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm opacity-70">
+                          Tap letters to toggle. Selected: {customSet.size}
+                        </div>
+                        <div className="space-x-2">
+                          <button
+                            className="btn btn-xs"
+                            onClick={() => setCustomSet(new Set(letters))}
+                            type="button"
+                          >
+                            Select all
+                          </button>
+                          <button
+                            className="btn btn-xs"
+                            onClick={() => setCustomSet(new Set())}
+                            type="button"
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-8 gap-2">
+                        {letters.map((l) => {
+                          const chosen = customSet.has(l);
+                          const disp = uppercase ? l.toUpperCase() : l;
+                          return (
+                            <button
+                              key={l}
+                              type="button"
+                              onClick={() =>
+                                setCustomSet((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(l)) next.delete(l);
+                                  else next.add(l);
+                                  return next;
+                                })
+                              }
+                              className={"btn btn-sm " + (chosen ? "btn-secondary" : "btn-ghost")}
+                            >
+                              {disp}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Case */}
+                <div>
+                  <div className="mb-2 font-semibold">Case</div>
+                  <div className="join">
+                    <button
+                      className={`join-item btn ${uppercase ? "btn-secondary" : "btn-ghost"}`}
+                      onClick={() => setUppercase(true)}
+                      type="button"
+                    >
+                      <CaseUpper className="w-4 h-4 mr-1" /> UPPERCASE
+                    </button>
+                    <button
+                      className={`join-item btn ${!uppercase ? "btn-secondary" : "btn-ghost"}`}
+                      onClick={() => setUppercase(false)}
+                      type="button"
+                    >
+                      <CaseLower className="w-4 h-4 mr-1" /> lowercase
+                    </button>
+                  </div>
+                </div>
+
+                {/* Number of questions */}
+                <div>
+                  <div className="mb-2 font-semibold">Number of questions</div>
+                  <div className="join">
+                    {[5, 10, 20, 30].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        className={`join-item btn ${qCount === n ? "btn-primary" : "btn-ghost"}`}
+                        onClick={() => setQCount(n as 10 | 20 | 30)}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  className="btn btn-primary"
+                  onClick={startTest}
+                  disabled={selectMode === "custom" && customSet.size === 0}
+                >
+                  Start
                 </button>
               </div>
             </div>
           </div>
         </section>
       )}
+
 
       {/* Results */}
       {finished && (
