@@ -13,3 +13,7 @@
 
 - In git actions for sub url refresh to work make sure to include the step `SPA fallback so direct URL refreshes work on Pages`
 
+- For favicon to work include below in html header (example in file root.tsx layout header)
+    ```html
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+    ```

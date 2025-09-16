@@ -1,4 +1,6 @@
+import { Link } from "react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, BookOpen, PencilLine } from "lucide-react";
 
 /** Guarded TTS helper (safe during SSR) */
 function say(text: string) {
@@ -86,7 +88,14 @@ export default function LearnPage() {
       {/* Header bar (Peppa-esque palette, no IP assets) */}
       <header className="sticky top-0 z-10">
         <div className="h-16 w-full bg-[#FFD1E8] border-b-2 border-[#FFD1E8] shadow-[0_2px_0_#FFB3D6] flex items-center px-4">
-          <h1 className="font-extrabold text-[#7B2E4A] text-lg sm:text-xl">Peppa pig</h1>
+          <h1 className="font-extrabold text-[#7B2E4A] text-lg sm:text-xl">
+            {/* Top bar */}
+      <div className="relative z-10 navbar bg-transparent p-4">
+        <div className="flex-1">
+          <Link to="/alphabets" className="btn btn-ghost gap-2 hover:bg-transparent hover:text-current hover:border-none"><ArrowLeft className="w-5 h-5" /> Back</Link>
+        </div>
+      </div>
+          </h1>
           <div className="ml-auto flex items-center gap-2">
             <span className="text-[#7B2E4A] font-semibold mr-1">Mode</span>
             <div className="join">

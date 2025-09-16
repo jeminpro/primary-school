@@ -2,6 +2,7 @@ import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 import { Link, Outlet, useLocation } from "react-router";
 
+
 export function Welcome() {
   return (
     <main className="flex items-center justify-center pt-16 pb-4">
@@ -26,7 +27,7 @@ export function Welcome() {
               What&apos;s next?
             </p>
             <ul>
-              <Link to="/learn" className="group flex items-center gap-3 self-stretch p-3 leading-normal text-blue-700 hover:underline dark:text-blue-500">Learn</Link>
+              <Link to="/alphabets" className="group flex items-center gap-3 self-stretch p-3 leading-normal text-blue-700 hover:underline dark:text-blue-500">Learn</Link>
 
             </ul>
           </nav>
