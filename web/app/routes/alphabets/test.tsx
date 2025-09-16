@@ -268,7 +268,7 @@ export default function AlphabetTest(): react.JSX.Element {
       {/* Grid of choices (running) */}
       {started && !finished && (
         <section className="relative z-10 px-4 sm:px-6 lg:px-8 pb-24">
-          <div className="mx-auto max-w-6xl mt-6 grid grid-cols-6 md:grid-cols-9 gap-2 md:gap-3">
+          <div className="mx-auto max-w-6xl mt-6 grid grid-cols-4 md:grid-cols-9 gap-2 md:gap-3">
             {displayPool.map((disp) => (
               <LetterTile
                 key={disp}
@@ -420,7 +420,7 @@ export default function AlphabetTest(): react.JSX.Element {
 
       {/* Results */}
       {finished && (
-        <section className="relative z-10 px-4 sm:px-6 lg:px-8 pb-24">
+        <section className="relative z-10 px-6 lg:px-8 pb-24">
           <div className="mx-auto max-w-4xl mt-6">
             <div className="rounded-3xl bg-base-100/70 backdrop-blur border border-base-200 shadow-xl p-6">
               <div className="flex items-center justify-between flex-wrap gap-3">

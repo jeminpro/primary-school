@@ -126,7 +126,7 @@ export default function AlphabetLearn(): react.JSX.Element {
 
       {/* Letter grid */}
       <section className="relative z-10 px-4 sm:px-6 lg:px-8 pb-24">
-        <div className="mx-auto max-w-6xl mt-6 grid grid-cols-6 md:grid-cols-9 gap-2 md:gap-3">
+        <div className="mx-auto max-w-6xl mt-6 grid grid-cols-4 md:grid-cols-9 gap-2 md:gap-3">
           {letters.map((l, i) => (
             <LetterTile
               key={l}
