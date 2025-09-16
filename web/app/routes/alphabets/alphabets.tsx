@@ -32,13 +32,11 @@ export default function AlphabetLanding(): react.JSX.Element {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="hero rounded-3xl bg-base-100/70 backdrop-blur border border-base-200 shadow-xl">
             <div className="hero-content flex-col md:flex-row gap-8 p-8">
-              <div className="shrink-0">
+              <div className="shrink-0 hidden md:block">
                 <img
                   className="w-50  mt-25"
                   src="https://www.peppapig.com/_next/image?url=https%3A%2F%2Fassets-us-01.kc-usercontent.com%3A443%2F500e0a65-283d-00ef-33b2-7f1f20488fe2%2Fbea4933f-a176-468a-acab-59ea00a75f79%2FMeet_the_Characters.webp&w=750&q=75"
                   alt="Letters A to Z" />
-
-
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-extrabold text-secondary tracking-tight">Alphabets (A–Z)</h1>
@@ -81,10 +79,7 @@ export default function AlphabetLanding(): react.JSX.Element {
           </div>
         </div>
       </section>
-
-
-      {/* Rolling hills (foreground) */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-green-300/80 to-green-200/20"></div>
+      
     </div>
   );
 }
