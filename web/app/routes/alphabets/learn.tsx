@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import react, { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, Settings2, CaseUpper, CaseLower } from "lucide-react";
+import { ArrowLeft, CaseUpper, CaseLower } from "lucide-react";
 import reactRouterConfig from "../../../react-router.config";
 
 /** Guarded TTS helper (safe during SSR) */
@@ -18,6 +18,32 @@ const letters = "abcdefghijklmnopqrstuvwxyz".split("");
 
 // LocalStorage keys
 const LS_CASE = "alpha_learn_upper"; // "1" | "0"
+const LS_LETTER_HISTORY = "alpha_letter_history_v1";
+
+type LetterHistory = {
+  [k: string]: {
+    upper: boolean[];
+    lower: boolean[];
+  };
+};
+
+function loadLetterHistory(): LetterHistory {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(LS_LETTER_HISTORY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as LetterHistory;
+    const out: LetterHistory = {};
+    for (const k of Object.keys(parsed || {})) {
+      if (!/^[a-z]$/.test(k)) continue;
+      const e = parsed[k] || { upper: [], lower: [] };
+      out[k] = { upper: Array.isArray(e.upper) ? e.upper.slice(-5).map(Boolean) : [], lower: Array.isArray(e.lower) ? e.lower.slice(-5).map(Boolean) : [] };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
 
 // Base path for audio files in /public
 const AUDIO_BASE = reactRouterConfig.basename + "/alphabets";
@@ -26,8 +52,9 @@ const AUDIO_BASE = reactRouterConfig.basename + "/alphabets";
 export default function AlphabetLearn(): react.JSX.Element {
   const [uppercase, setUppercase] = useState<boolean>(true);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [controlsOpen, setControlsOpen] = useState<boolean>(false);
+  // controlsOpen removed; case toggle moved inline
   const buttonsRef = useRef<Array<HTMLButtonElement | null>>([]);
+  const [letterHistory, setLetterHistory] = useState<LetterHistory>(() => (typeof window === "undefined" ? {} : loadLetterHistory()));
 
   // Single audio element for smooth playback + cancellation
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -88,6 +115,11 @@ export default function AlphabetLearn(): react.JSX.Element {
     });
   }, []);
 
+  // Reload history after hydration (safe client-only read)
+  useEffect(() => {
+    setLetterHistory(loadLetterHistory());
+  }, []);
+
   // Keyboard: A–Z triggers
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -118,14 +150,24 @@ export default function AlphabetLearn(): react.JSX.Element {
           <span className="font-semibold">Back</span>
         </Link>
 
-        <button
-          className="btn btn-primary rounded-full gap-2"
-          onClick={() => setControlsOpen(true)}
-          aria-haspopup="dialog"
-          aria-controls="controls_modal"
-        >
-          <Settings2 className="w-4 h-4" /> Controls
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className={`btn btn-sm ${uppercase ? "btn-secondary" : "btn-ghost"}`}
+            onClick={() => setUppercase(true)}
+            aria-pressed={uppercase}
+            title="Uppercase"
+          >
+            <CaseUpper className="w-4 h-4" />
+          </button>
+          <button
+            className={`btn btn-sm ${!uppercase ? "btn-secondary" : "btn-ghost"}`}
+            onClick={() => setUppercase(false)}
+            aria-pressed={!uppercase}
+            title="Lowercase"
+          >
+            <CaseLower className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Letter grid */}
@@ -139,54 +181,13 @@ export default function AlphabetLearn(): react.JSX.Element {
               active={activeIndex === i}
               onClick={() => speak(i)}
               buttonRef={(el) => (buttonsRef.current[i] = el)}
+              history={letterHistory[l] ? (uppercase ? letterHistory[l].upper : letterHistory[l].lower) : []}
             />
           ))}
         </div>
       </section>
 
-      {/* Controls Modal (DaisyUI dialog) – Only Case now */}
-      <dialog
-        id="controls_modal"
-        className={`modal ${controlsOpen ? "modal-open" : ""}`}
-        onClose={() => setControlsOpen(false)}
-      >
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">Learning Controls</h3>
-          <p className="opacity-70 text-sm mb-4">Choose how letters look.</p>
-
-          <div className="space-y-6">
-            {/* Case */}
-            <div>
-              <div className="mb-2 font-semibold flex items-center gap-2">Case</div>
-              <div className="join">
-                <button
-                  className={`join-item btn ${uppercase ? "btn-secondary" : "btn-ghost"}`}
-                  onClick={() => setUppercase(true)}
-                  aria-pressed={uppercase}
-                >
-                  <CaseUpper className="w-4 h-4 mr-1" /> UPPERCASE
-                </button>
-                <button
-                  className={`join-item btn ${!uppercase ? "btn-secondary" : "btn-ghost"}`}
-                  onClick={() => setUppercase(false)}
-                  aria-pressed={!uppercase}
-                >
-                  <CaseLower className="w-4 h-4 mr-1" /> lowercase
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="modal-action">
-            <button className="btn" onClick={() => setControlsOpen(false)}>
-              Done
-            </button>
-          </div>
-        </div>
-        <form method="dialog" className="modal-backdrop" onClick={() => setControlsOpen(false)}>
-          <button>close</button>
-        </form>
-      </dialog>
+      {/* Controls moved inline in header; modal removed */}
 
       {/* Bottom hill overlay */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-green-300/80 to-green-200/20" />
@@ -204,15 +205,17 @@ type LetterTileProps = {
   active: boolean;
   onClick: () => void;
   buttonRef: (el: HTMLButtonElement | null) => void;
+  history?: boolean[];
 };
 
-function LetterTile({ letter, raw, active, onClick, buttonRef }: LetterTileProps): React.JSX.Element {
+function LetterTile({ letter, raw, active, onClick, buttonRef, history }: LetterTileProps): React.JSX.Element {
+  const recent = (history ?? []).slice(-5);
   return (
     <button
       ref={buttonRef}
       onClick={onClick}
       className={[
-        "relative aspect-square select-none rounded-2xl border-2 transition",
+        "relative aspect-square select-none rounded-2xl border-2 transition flex flex-col",
         active
           ? "bg-[#FFF6FB] border-[#FF79C7] scale-[0.98] shadow-[0_5px_0_#FFD1E8]"
           : "bg-white/90 border-[#FFD1E8] hover:border-[#FF79C7] hover:shadow-[0_5px_0_#FFD1E8]",
@@ -220,8 +223,18 @@ function LetterTile({ letter, raw, active, onClick, buttonRef }: LetterTileProps
       ].join(" ")}
       aria-label={`Letter ${letter}`}
     >
-      <div className="absolute inset-0 p-2 grid place-items-center">
+      <div className="flex-1 grid place-items-center p-4">
         <span className="font-extrabold text-[#7B2E4A] text-5xl sm:text-6xl">{letter}</span>
+      </div>
+      <div className="h-6 flex items-center justify-center pb-2">
+        <div className="flex gap-1">
+          {recent.map((v, i) => (
+            <span key={i} className={"block w-2 h-2 rounded-full " + (v ? "bg-emerald-500" : "bg-rose-500")} />
+          ))}
+          {Array.from({ length: Math.max(0, 5 - recent.length) }).map((_, i) => (
+            <span key={`pad-${i}`} className="block w-2 h-2 rounded-full bg-gray-200" />
+          ))}
+        </div>
       </div>
     </button>
   );
