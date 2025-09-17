@@ -520,10 +520,10 @@ export default function AlphabetTest(): react.JSX.Element {
                                 return next;
                               })
                             }
-                            className={"btn btn-sm relative flex flex-col " + (chosen ? "btn-primary" : "btn-ghost")}
+                            className={"btn btn-md relative flex flex-col " + (chosen ? "btn-primary" : "btn-dash")}
                           >
-                            <span className="leading-none">{disp}</span>
-                            <div className="mt-1 flex gap-1">
+                            <span className="leading-none mt-1">{disp}</span>
+                            <div className="flex gap-1 mb-1">
                               {recent.map((v, i) => (
                                 <span key={i} className={"block w-1 h-1 rounded-full " + (v ? "bg-emerald-500" : "bg-rose-500")} />
                               ))}
