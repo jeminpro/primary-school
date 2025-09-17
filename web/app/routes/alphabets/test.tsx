@@ -408,13 +408,14 @@ export default function AlphabetTest(): react.JSX.Element {
           <div className="mx-auto max-w-4xl mt-6">
             <div className="rounded-3xl bg-base-100/70 backdrop-blur border border-base-200 shadow-xl p-6">
               <div className="flex items-center justify-between flex-wrap gap-3">
-                <h2 className="text-2xl font-bold">Results</h2>
+                <h2 className="text-2xl font-bold">Results <button className="btn" onClick={() => { resetTest(); setControlsOpen(true); }}>Try Again</button></h2>
+                
                 <div className="text-lg font-semibold">
                   Score: {results.filter((r) => r.correct).length} / {results.length}
                 </div>
               </div>
 
-              {/* NEW: Dancing pig on perfect score */}
+              {/* Dancing pig on perfect score */}
               {(() => {
                 const allCorrect = results.length > 0 && results.every((r) => r.correct);
                 return allCorrect ? (
@@ -424,6 +425,8 @@ export default function AlphabetTest(): react.JSX.Element {
                   </div>
                 ) : null;
               })()}
+
+              
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {results.map((r, i) => {
@@ -437,11 +440,11 @@ export default function AlphabetTest(): react.JSX.Element {
                     >
                       <div className="card-body p-4">
                         <div className="flex items-center justify-between">
-                          <div className="font-semibold">Q{i + 1}</div>
-                          {good ? <Check className="w-5 h-5" /> : <XIcon className="w-5 h-5" />}
-                        </div>
-                        <div className="mt-1 text-sm opacity-70">Heard: {letterSound[r.target]}</div>
-                        <div className="mt-2">
+                          <div className="font-semibold">
+                            Q{i + 1}
+
+                          </div>
+
                           {good ? (
                             <div className="badge badge-success badge-lg">{correctDisp}</div>
                           ) : (
@@ -451,17 +454,13 @@ export default function AlphabetTest(): react.JSX.Element {
                               <div className="badge badge-success badge-lg">{correctDisp}</div>
                             </div>
                           )}
+
+                          {good ? <Check className="w-5 h-5" /> : <XIcon className="w-5 h-5" />}
                         </div>
                       </div>
                     </div>
                   );
                 })}
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-2 justify-end">
-                <button className="btn" onClick={resetTest}>Try Again</button>
-                <button className="btn btn-primary" onClick={() => { resetTest(); setControlsOpen(true); }}>Change Setup</button>
-                <Link to="/alphabets" className="btn btn-ghost">Back to Alphabet</Link>
               </div>
             </div>
           </div>
@@ -525,14 +524,4 @@ function PigMascot({ className = "w-32 h-32" }: { className?: string }): react.J
     </svg>
   );
 }
-
-function DancingPig(): react.JSX.Element {
-  return (
-    <div className="flex flex-col items-center justify-center gap-3">
-      <div className="text-3xl">🎉🎉🎉</div>
-      <PigMascot className="w-36 h-36 animate-bounce" />
-      <div className="text-xl font-bold text-success">Perfect score!</div>
-      <div className="text-sm opacity-70">Amazing work!</div>
-    </div>
-  );
-}
+/* ======================================================== */
