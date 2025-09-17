@@ -52,9 +52,11 @@ function LetterTile({ letter, raw, onClick, highlight = "none" }: LetterTileProp
       : highlight === "wrong"
         ? "bg-rose-50 border-rose-300 shadow-[0_5px_0_#fda4af]"
         : "bg-white/90 border-[#FFD1E8] hover:border-[#FF79C7] hover:shadow-[0_5px_0_#FFD1E8]";
+
   return (
     <button className={`${base} ${style}`} onClick={onClick} aria-label={`Choose ${letter}`}>
       <span className="font-extrabold text-[#7B2E4A] text-5xl">{letter}</span>
+      {/* dots intentionally not shown on test grid; only shown in choose-letters UI */}
     </button>
   );
 }
@@ -94,13 +96,65 @@ function shuffle<T>(arr: T[]): T[] {
 // LocalStorage key for test settings
 const LS_TEST_PREFS = "alpha_test_prefs_v2";
 
+// LocalStorage key for per-letter history (last 5 answers per case)
+const LS_LETTER_HISTORY = "alpha_letter_history_v1";
+
+type LetterHistory = {
+  [k: string]: {
+    upper: boolean[]; // newest entries at end
+    lower: boolean[];
+  };
+};
+
+function loadLetterHistory(): LetterHistory {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(LS_LETTER_HISTORY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as LetterHistory;
+    const out: LetterHistory = {};
+    for (const ch of Object.keys(parsed || {})) {
+      if (!/^[a-z]$/.test(ch)) continue;
+      const entry = parsed[ch] || { upper: [], lower: [] };
+      out[ch] = {
+        upper: Array.isArray(entry.upper) ? entry.upper.slice(-5).map(Boolean) : [],
+        lower: Array.isArray(entry.lower) ? entry.lower.slice(-5).map(Boolean) : [],
+      };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function saveLetterHistory(hist: LetterHistory) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LS_LETTER_HISTORY, JSON.stringify(hist));
+  } catch {
+    // ignore
+  }
+}
+
+function pushLetterHistory(hist: LetterHistory, raw: string, isUpper: boolean, correct: boolean): LetterHistory {
+  const ch = raw.toLowerCase();
+  const next: LetterHistory = { ...hist };
+  if (!next[ch]) next[ch] = { upper: [], lower: [] };
+  const arr = isUpper ? [...next[ch].upper] : [...next[ch].lower];
+  arr.push(Boolean(correct));
+  const sliced = arr.slice(-5);
+  if (isUpper) next[ch].upper = sliced;
+  else next[ch].lower = sliced;
+  return next;
+}
+
 // ————————————————————————————————————————————————
 // Main component
 // ————————————————————————————————————————————————
 
 export default function AlphabetTest(): react.JSX.Element {
   const [uppercase, setUppercase] = useState<boolean>(true);
-  const [selectMode, setSelectMode] = useState<"all" | "custom">("all");
+  // no selectMode state — always use custom selection set
   const [customSet, setCustomSet] = useState<Set<string>>(() => new Set<string>());
   const [qCount, setQCount] = useState<5 | 10 | 20 | 30>(10); // include 5 since UI offers it
 
@@ -120,22 +174,22 @@ export default function AlphabetTest(): react.JSX.Element {
 
   // Hydration guard so we don't overwrite saved data on first mount
   const [hydrated, setHydrated] = useState(false);
+  // per-letter history state
+  const [letterHistory, setLetterHistory] = useState<LetterHistory>(() => (typeof window === "undefined" ? {} : loadLetterHistory()));
 
   // —— Load saved settings on mount ——
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_TEST_PREFS);
-      if (raw) {
+        if (raw) {
         const saved = JSON.parse(raw) as Partial<{
           uppercase: boolean;
-          selectMode: "all" | "custom";
           customSet: string[];
           qCount: number;
           shuffleGrid: boolean;
         }>;
 
         if (typeof saved.uppercase === "boolean") setUppercase(saved.uppercase);
-        if (saved.selectMode === "all" || saved.selectMode === "custom") setSelectMode(saved.selectMode);
         if (Array.isArray(saved.customSet)) {
           const valid = saved.customSet.filter((c) => letters.includes(c));
           setCustomSet(new Set(valid));
@@ -159,7 +213,7 @@ export default function AlphabetTest(): react.JSX.Element {
     try {
       const payload = {
         uppercase,
-        selectMode,
+      // selectMode removed
         customSet: Array.from(customSet),
         qCount,
         shuffleGrid,
@@ -168,7 +222,18 @@ export default function AlphabetTest(): react.JSX.Element {
     } catch {
       // ignore
     }
-  }, [uppercase, selectMode, customSet, qCount, shuffleGrid, hydrated]);
+  }, [uppercase, customSet, qCount, shuffleGrid, hydrated]);
+
+  // After hydration complete, ensure we load latest letter history from localStorage
+  useEffect(() => {
+    if (!hydrated) return;
+    setLetterHistory(loadLetterHistory());
+  }, [hydrated]);
+
+  // persist letter history whenever it changes
+  useEffect(() => {
+    saveLetterHistory(letterHistory);
+  }, [letterHistory]);
 
   // keep a single audio element so we can stop the previous one
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -201,10 +266,9 @@ export default function AlphabetTest(): react.JSX.Element {
   }
 
   const choicePool = useMemo(() => {
-    if (selectMode === "all") return letters;
     const arr = Array.from(customSet);
     return arr.length ? arr : letters; // safe fallback
-  }, [selectMode, customSet]);
+  }, [customSet]);
 
   // Respect shuffleGrid for the choices grid
   const displayPool = useMemo(() => {
@@ -251,6 +315,8 @@ export default function AlphabetTest(): react.JSX.Element {
     const isCorrect = guess === target;
     setResults((prev) => [...prev, { target, guess, correct: isCorrect }]);
     setFlash(isCorrect ? "correct" : "wrong");
+    // record to history for this letter and case
+    setLetterHistory((prev) => pushLetterHistory(prev, target, uppercase, isCorrect));
 
     // pause before advancing (1.5s)
     setTimeout(() => {
@@ -373,15 +439,19 @@ export default function AlphabetTest(): react.JSX.Element {
             }
             aria-disabled={locked}
           >
-            {displayPool.map((disp) => (
-              <LetterTile
-                key={disp}
-                letter={disp}
-                raw={disp.toLowerCase()}
-                onClick={() => onPick(disp)}
-                highlight="none"
-              />
-            ))}
+            {displayPool.map((disp) => {
+              const raw = disp.toLowerCase();
+              const hist = letterHistory[raw] ? (uppercase ? letterHistory[raw].upper : letterHistory[raw].lower) : [];
+              return (
+                <LetterTile
+                  key={disp}
+                  letter={disp}
+                  raw={raw}
+                  onClick={() => onPick(disp)}
+                  highlight="none"
+                />
+              );
+            })}
           </div>
         </section>
       )}
@@ -396,91 +466,19 @@ export default function AlphabetTest(): react.JSX.Element {
                 Choose your options and press <span className="font-semibold">Start</span>.
               </p>
 
-              <div className="mt-6 space-y-6">
-                {/* Letters: All or Specific */}
-                <div>
-                  <div className="mb-2 font-semibold">Letters</div>
-                  <div className="join">
-                    <button
-                      className={`join-item btn ${selectMode === "all" ? "btn-primary" : "btn-ghost"}`}
-                      onClick={() => setSelectMode("all")}
-                      type="button"
-                    >
-                      All (A–Z)
-                    </button>
-                    <button
-                      className={`join-item btn ${selectMode === "custom" ? "btn-primary" : "btn-ghost"}`}
-                      onClick={() => setSelectMode("custom")}
-                      type="button"
-                    >
-                      Choose letters
-                    </button>
-                  </div>
-
-                  {selectMode === "custom" && (
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm opacity-70">
-                          Tap letters to toggle. Selected: {customSet.size}
-                        </div>
-                        <div className="space-x-2">
-                          <button
-                            className="btn btn-xs"
-                            onClick={() => setCustomSet(new Set(letters))}
-                            type="button"
-                          >
-                            Select all
-                          </button>
-                          <button
-                            className="btn btn-xs"
-                            onClick={() => setCustomSet(new Set())}
-                            type="button"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-8 gap-2">
-                        {letters.map((l) => {
-                          const chosen = customSet.has(l);
-                          const disp = uppercase ? l.toUpperCase() : l;
-                          return (
-                            <button
-                              key={l}
-                              type="button"
-                              onClick={() =>
-                                setCustomSet((prev) => {
-                                  const next = new Set(prev);
-                                  if (next.has(l)) next.delete(l);
-                                  else next.add(l);
-                                  return next;
-                                })
-                              }
-                              className={"btn btn-sm " + (chosen ? "btn-secondary" : "btn-ghost")}
-                            >
-                              {disp}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Case */}
+              {/* Case */}
                 <div>
                   <div className="mb-2 font-semibold">Case</div>
                   <div className="join">
                     <button
-                      className={`join-item btn ${uppercase ? "btn-secondary" : "btn-ghost"}`}
+                      className={`join-item btn ${uppercase ? "btn-primary" : "btn-ghost"}`}
                       onClick={() => setUppercase(true)}
                       type="button"
                     >
                       <CaseUpper className="w-4 h-4 mr-1" /> UPPERCASE
                     </button>
                     <button
-                      className={`join-item btn ${!uppercase ? "btn-secondary" : "btn-ghost"}`}
+                      className={`join-item btn ${!uppercase ? "btn-primary" : "btn-ghost"}`}
                       onClick={() => setUppercase(false)}
                       type="button"
                     >
@@ -489,20 +487,71 @@ export default function AlphabetTest(): react.JSX.Element {
                   </div>
                 </div>
 
+              <div className="mt-6 space-y-6">
+                {/* Letters */}
+                <div>
+                  <div className="mb-2 font-semibold">Letters</div>
+                  <div className="mb-2 opacity-70">Choose the letters to include in the test</div>
+
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm opacity-70">Tap letters to toggle. Selected: {customSet.size}</div>
+                      <div className="space-x-2">
+                        <button className="btn btn-xs" onClick={() => setCustomSet(new Set(letters))} type="button">Select all</button>
+                        <button className="btn btn-xs" onClick={() => setCustomSet(new Set())} type="button">Clear</button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-6 gap-2">
+                      {letters.map((l) => {
+                        const chosen = customSet.has(l);
+                        const disp = uppercase ? l.toUpperCase() : l;
+                        const hist = letterHistory[l] ? (uppercase ? letterHistory[l].upper : letterHistory[l].lower) : [];
+                        const recent = (hist ?? []).slice(-5);
+                        return (
+                          <button
+                            key={l}
+                            type="button"
+                            onClick={() =>
+                              setCustomSet((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(l)) next.delete(l);
+                                else next.add(l);
+                                return next;
+                              })
+                            }
+                            className={"btn btn-sm relative flex flex-col " + (chosen ? "btn-primary" : "btn-ghost")}
+                          >
+                            <span className="leading-none">{disp}</span>
+                            <div className="mt-1 flex gap-1">
+                              {recent.map((v, i) => (
+                                <span key={i} className={"block w-1 h-1 rounded-full " + (v ? "bg-emerald-500" : "bg-rose-500")} />
+                              ))}
+                              {Array.from({ length: Math.max(0, 5 - recent.length) }).map((_, i) => (
+                                <span key={`pad-${i}`} className="block w-1 h-1 rounded-full bg-gray-200" />
+                              ))}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>                
+
                 {/* Alphabet order */}
                 <div>
                   <div className="mb-2 font-semibold">Alphabet order</div>
                   <div className="join">
                     <button
                       type="button"
-                      className={`join-item btn ${!shuffleGrid ? "btn-secondary" : "btn-ghost"}`}
+                      className={`join-item btn ${!shuffleGrid ? "btn-primary" : "btn-ghost"}`}
                       onClick={() => setShuffleGrid(false)}
                     >
                       A → Z
                     </button>
                     <button
                       type="button"
-                      className={`join-item btn ${shuffleGrid ? "btn-secondary" : "btn-ghost"}`}
+                      className={`join-item btn ${shuffleGrid ? "btn-primary" : "btn-ghost"}`}
                       onClick={() => setShuffleGrid(true)}
                     >
                       Shuffle
@@ -530,9 +579,9 @@ export default function AlphabetTest(): react.JSX.Element {
 
               <div className="mt-6 flex justify-end">
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-secondary btn-lg"
                   onClick={startTest}
-                  disabled={selectMode === "custom" && customSet.size === 0}
+                  disabled={customSet.size === 0}
                 >
                   Start
                 </button>
