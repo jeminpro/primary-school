@@ -39,12 +39,12 @@ jobs:
         working-directory: ./web
         run: npm run build
 
-       # SPA fallback so direct URL refreshes work on Pages
-      - name: Add SPA 404 fallback & disable Jekyll
-        working-directory: ./web
-        run: |
-          cp -f build/client/index.html build/client/404.html
-          touch build/client/.nojekyll
+      #  # SPA fallback so direct URL refreshes work on Pages
+      # - name: Add SPA 404 fallback & disable Jekyll
+      #   working-directory: ./web
+      #   run: |
+      #     cp -f build/client/index.html build/client/404.html
+      #     touch build/client/.nojekyll
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
