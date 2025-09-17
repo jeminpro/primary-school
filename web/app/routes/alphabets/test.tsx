@@ -87,6 +87,9 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// LocalStorage key for test settings
+const LS_TEST_PREFS = "alpha_test_prefs_v2";
+
 // ————————————————————————————————————————————————
 // Main component
 // ————————————————————————————————————————————————
@@ -95,7 +98,7 @@ export default function AlphabetTest(): react.JSX.Element {
   const [uppercase, setUppercase] = useState<boolean>(true);
   const [selectMode, setSelectMode] = useState<"all" | "custom">("all");
   const [customSet, setCustomSet] = useState<Set<string>>(() => new Set<string>());
-  const [qCount, setQCount] = useState<10 | 20 | 30>(10);
+  const [qCount, setQCount] = useState<5 | 10 | 20 | 30>(10); // include 5 since UI offers it
 
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -108,13 +111,68 @@ export default function AlphabetTest(): react.JSX.Element {
   // NEW: toggle for juggling grid order (default NO)
   const [shuffleGrid, setShuffleGrid] = useState<boolean>(false);
 
+  // NEW: lock grid between answer and next question
+  const [locked, setLocked] = useState(false);
+
+  // Hydration guard so we don't overwrite saved data on first mount
+  const [hydrated, setHydrated] = useState(false);
+
+  // —— Load saved settings on mount ——
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_TEST_PREFS);
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<{
+          uppercase: boolean;
+          selectMode: "all" | "custom";
+          customSet: string[];
+          qCount: number;
+          shuffleGrid: boolean;
+        }>;
+
+        if (typeof saved.uppercase === "boolean") setUppercase(saved.uppercase);
+        if (saved.selectMode === "all" || saved.selectMode === "custom") setSelectMode(saved.selectMode);
+        if (Array.isArray(saved.customSet)) {
+          const valid = saved.customSet.filter((c) => letters.includes(c));
+          setCustomSet(new Set(valid));
+        }
+        const allowedCounts = [5, 10, 20, 30];
+        if (typeof saved.qCount === "number" && allowedCounts.includes(saved.qCount)) {
+          setQCount(saved.qCount as 5 | 10 | 20 | 30);
+        }
+        if (typeof saved.shuffleGrid === "boolean") setShuffleGrid(saved.shuffleGrid);
+      }
+    } catch {
+      // ignore parse/LS errors
+    } finally {
+      setHydrated(true);
+    }
+  }, []);
+
+  // —— Persist settings whenever they change (after hydration) ——
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      const payload = {
+        uppercase,
+        selectMode,
+        customSet: Array.from(customSet),
+        qCount,
+        shuffleGrid,
+      };
+      localStorage.setItem(LS_TEST_PREFS, JSON.stringify(payload));
+    } catch {
+      // ignore
+    }
+  }, [uppercase, selectMode, customSet, qCount, shuffleGrid, hydrated]);
+
   const choicePool = useMemo(() => {
     if (selectMode === "all") return letters;
     const arr = Array.from(customSet);
     return arr.length ? arr : letters; // safe fallback
   }, [selectMode, customSet]);
 
-  // CHANGED: respect shuffleGrid for the choices grid
+  // Respect shuffleGrid for the choices grid
   const displayPool = useMemo(() => {
     const base = shuffleGrid ? shuffle(choicePool) : choicePool;
     return base.map((l) => (uppercase ? l.toUpperCase() : l));
@@ -143,20 +201,27 @@ export default function AlphabetTest(): react.JSX.Element {
   }
 
   function onPick(guessDisplay: string) {
-    if (!started || finished) return;
+    if (!started || finished || locked) return; // ← block extra clicks
+    setLocked(true);
+
     const guess = guessDisplay.toLowerCase();
     const target = currentLetter;
     const isCorrect = guess === target;
     setResults((prev) => [...prev, { target, guess, correct: isCorrect }]);
     setFlash(isCorrect ? "correct" : "wrong");
-    // CHANGED: pause 2 seconds before advancing
+
+    // pause before advancing (1.5s)
     setTimeout(() => {
       setFlash(null);
       if (index + 1 < questions.length) {
         setIndex((i) => i + 1);
-        setTimeout(() => speakCurrent(questions[index + 1]), 200);
+        setTimeout(() => {
+          speakCurrent(questions[index + 1]);
+          setLocked(false); // unlock for next question after prompt plays
+        }, 200);
       } else {
         setFinished(true);
+        setLocked(false);
       }
     }, 1500);
   }
@@ -168,6 +233,7 @@ export default function AlphabetTest(): react.JSX.Element {
     setQuestions([]);
     setResults([]);
     setFlash(null);
+    setLocked(false);
   }
 
   // ——— UI ———
@@ -201,29 +267,55 @@ export default function AlphabetTest(): react.JSX.Element {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button className="btn btn-secondary btn-sm rounded-full gap-2" onClick={() => speakCurrent()}>
+                  <button
+                    className="btn btn-secondary btn-sm rounded-full gap-2"
+                    onClick={() => speakCurrent()}
+                    disabled={locked}
+                  >
                     <Volume2 className="w-4 h-4" /> Hear again
                   </button>
                 </div>
               </div>
 
               {/* subtle progress bar */}
-              <progress className="progress progress-primary w-full mt-3" value={index} max={questions.length - 1}></progress>
+              <progress
+                className="progress progress-primary w-full mt-3"
+                value={index}
+                max={questions.length - 1}
+              ></progress>
 
-              {/* Feedback banner */}
-              {flash && (
-                <div
-                  className={
-                    "mt-3 alert " + (flash === "correct" ? "alert-success" : "alert-error")
-                  }
-                >
-                  {flash === "correct" ? (
-                    <div className="flex items-center gap-2"><Check className="w-5 h-5" /><span>Correct!</span></div>
-                  ) : (
-                    <div className="flex items-center gap-2"><XIcon className="w-5 h-5" /><span>Oops!</span></div>
-                  )}
-                </div>
-              )}
+              {/* Feedback banner – no layout shift */}
+              <div className="mt-3">
+                {/*
+                  Always render an alert-sized box.
+                  Use visibility/opacity to show/hide without affecting layout.
+                */}
+                {(() => {
+                  const type = (flash ?? "correct") as "correct" | "wrong";
+                  return (
+                    <div
+                      className={
+                        "alert h-12 items-center transition-opacity duration-150 " +
+                        (type === "correct" ? "alert-success" : "alert-error") +
+                        " " +
+                        (flash ? "opacity-100 visible" : "opacity-0 invisible")
+                      }
+                    >
+                      {type === "correct" ? (
+                        <div className="flex items-center gap-2">
+                          <Check className="w-5 h-5" />
+                          <span>Correct!</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <XIcon className="w-5 h-5" />
+                          <span>Oops!</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </section>
@@ -232,7 +324,13 @@ export default function AlphabetTest(): react.JSX.Element {
       {/* Grid of choices (running) */}
       {started && !finished && (
         <section className="relative z-10 px-4 sm:px-6 lg:px-8 pb-24">
-          <div className="mx-auto max-w-6xl mt-6 grid grid-cols-4 md:grid-cols-9 gap-1 md:gap-3">
+          <div
+            className={
+              "mx-auto max-w-6xl mt-6 grid grid-cols-5 md:grid-cols-9 gap-1 md:gap-3 " +
+              (locked ? "pointer-events-none opacity-70" : "")
+            }
+            aria-disabled={locked}
+          >
             {displayPool.map((disp) => (
               <LetterTile
                 key={disp}
@@ -349,7 +447,7 @@ export default function AlphabetTest(): react.JSX.Element {
                   </div>
                 </div>
 
-                {/* NEW: Alphabet order */}
+                {/* Alphabet order */}
                 <div>
                   <div className="mb-2 font-semibold">Alphabet order</div>
                   <div className="join">
@@ -379,7 +477,7 @@ export default function AlphabetTest(): react.JSX.Element {
                         key={n}
                         type="button"
                         className={`join-item btn ${qCount === n ? "btn-primary" : "btn-ghost"}`}
-                        onClick={() => setQCount(n as 10 | 20 | 30)}
+                        onClick={() => setQCount(n as 5 | 10 | 20 | 30)}
                       >
                         {n}
                       </button>
@@ -409,7 +507,6 @@ export default function AlphabetTest(): react.JSX.Element {
             <div className="rounded-3xl bg-base-100/70 backdrop-blur border border-base-200 shadow-xl p-6">
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <h2 className="text-2xl font-bold">Results <button className="btn" onClick={() => { resetTest(); setControlsOpen(true); }}>Try Again</button></h2>
-                
                 <div className="text-lg font-semibold">
                   Score: {results.filter((r) => r.correct).length} / {results.length}
                 </div>
@@ -420,13 +517,10 @@ export default function AlphabetTest(): react.JSX.Element {
                 const allCorrect = results.length > 0 && results.every((r) => r.correct);
                 return allCorrect ? (
                   <div className="mt-4 flex justify-center">
-                    
                     <img src="https://i.giphy.com/Pq2fdlMQwFvQvBTd0e.webp" alt="Dancing pig" className="h-40" />
                   </div>
                 ) : null;
               })()}
-
-              
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {results.map((r, i) => {
@@ -442,7 +536,6 @@ export default function AlphabetTest(): react.JSX.Element {
                         <div className="flex items-center justify-between">
                           <div className="font-semibold">
                             Q{i + 1}
-
                           </div>
 
                           {good ? (
@@ -507,21 +600,3 @@ function Cloud({ className = "" }: { className?: string }): react.JSX.Element {
     </div>
   );
 }
-
-/* ===== NEW: Dancing Pig components for perfect score ===== */
-function PigMascot({ className = "w-32 h-32" }: { className?: string }): react.JSX.Element {
-  return (
-    <svg viewBox="0 0 200 200" className={className} aria-hidden>
-      <circle cx="100" cy="100" r="70" fill="#F7B2C2" stroke="#E07A98" strokeWidth="4" />
-      <path d="M55 40c-12 0-18 10-10 20 10 12 26 6 26-6 0-8-6-14-16-14z" fill="#F7B2C2" stroke="#E07A98" strokeWidth="4" />
-      <path d="M145 40c12 0 18 10 10 20-10 12-26 6-26-6 0-8 6-14 16-14z" fill="#F7B2C2" stroke="#E07A98" strokeWidth="4" />
-      <circle cx="80" cy="95" r="8" fill="#222" />
-      <circle cx="120" cy="95" r="8" fill="#222" />
-      <ellipse cx="100" cy="120" rx="28" ry="20" fill="#F9C6D2" stroke="#E07A98" strokeWidth="3" />
-      <circle cx="92" cy="120" r="4" fill="#E07A98" />
-      <circle cx="108" cy="120" r="4" fill="#E07A98" />
-      <path d="M80 140c12 10 28 10 40 0" fill="none" stroke="#222" strokeWidth="4" strokeLinecap="round" />
-    </svg>
-  );
-}
-/* ======================================================== */
