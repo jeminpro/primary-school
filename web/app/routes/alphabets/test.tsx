@@ -506,21 +506,48 @@ export default function AlphabetTest(): react.JSX.Element {
           <div className="mx-auto max-w-4xl mt-6">
             <div className="rounded-3xl bg-base-100/70 backdrop-blur border border-base-200 shadow-xl p-6">
               <div className="flex items-center justify-between flex-wrap gap-3">
-                <h2 className="text-2xl font-bold">Results <button className="btn" onClick={() => { resetTest(); setControlsOpen(true); }}>Try Again</button></h2>
                 <div className="text-lg font-semibold">
                   Score: {results.filter((r) => r.correct).length} / {results.length}
                 </div>
+                <button className="btn btn-primary" onClick={() => { resetTest(); setControlsOpen(true); }}>Try Again</button>
               </div>
 
-              {/* Dancing pig on perfect score */}
+              {/* Performance mascot by score */}
               {(() => {
-                const allCorrect = results.length > 0 && results.every((r) => r.correct);
-                return allCorrect ? (
+                const total = results.length;
+                if (!total) return null;
+
+                const correct = results.filter((r) => r.correct).length;
+                const pct = (correct / total) * 100;
+
+                let src = "";
+                let alt = "";
+
+                if (pct < 50) {
+                  // < 50% — George crying
+                  src = "https://i.giphy.com/XkXug9uuKlkAB2ffZt.webp";
+                  alt = "George crying";
+                } else if (pct < 80) {
+                  // < 80% — Peppa jumping
+                  src = "https://i.giphy.com/Pq2fdlMQwFvQvBTd0e.webp";
+                  alt = "Peppa jumping";
+                } else if (pct < 100) {
+                  // < 100% — Peppa & George jumping
+                  src = "https://i.giphy.com/J2xK9jzk1egWAWbtiz.webp";
+                  alt = "Peppa and George jumping";
+                } else {
+                  // 100% — Full family jumping
+                  src = "https://c.tenor.com/NLzxFH65AFwAAAAd/tenor.gif";
+                  alt = "Peppa family jumping";
+                }
+
+                return (
                   <div className="mt-4 flex justify-center">
-                    <img src="https://i.giphy.com/Pq2fdlMQwFvQvBTd0e.webp" alt="Dancing pig" className="h-40" />
+                    <img src={src} alt={alt} className="h-40" />
                   </div>
-                ) : null;
+                );
               })()}
+
 
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {results.map((r, i) => {
