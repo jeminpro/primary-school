@@ -1,5 +1,7 @@
 import { Link } from "react-router";
 import react, { useEffect, useMemo, useRef, useState } from "react";
+import reactRouterConfig from "../../../react-router.config";
+
 import {
   ArrowLeft,
   Volume2,
@@ -29,6 +31,8 @@ const letterSound: Record<string, string> = {
 };
 
 const letters = "abcdefghijklmnopqrstuvwxyz".split("");
+
+const AUDIO_BASE = reactRouterConfig.basename + "/alphabets";
 
 type Result = { target: string; guess: string; correct: boolean };
 
@@ -166,6 +170,36 @@ export default function AlphabetTest(): react.JSX.Element {
     }
   }, [uppercase, selectMode, customSet, qCount, shuffleGrid, hydrated]);
 
+  // keep a single audio element so we can stop the previous one
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  /** Play letter audio from /public/alphbet/<letter>.mp3, fallback to TTS if it fails */
+  function playLetterAudio(letter: string) {
+    if (typeof window === "undefined") return;
+
+    const l = letter.toLowerCase();
+    const src = `${AUDIO_BASE}/${l}.mp3`;
+
+    // stop any current speech or audio
+    try { window.speechSynthesis.cancel(); } catch {}
+
+    try {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const a = new Audio(src);
+      audioRef.current = a;
+      a.currentTime = 0;
+      a.play().catch(() => {
+        // autoplay blocked or file missing — fallback to TTS
+        say((letterSound as any)[l] ?? l);
+      });
+    } catch {
+      // hard fallback
+      say((letterSound as any)[l] ?? l);
+    }
+  }
+
   const choicePool = useMemo(() => {
     if (selectMode === "all") return letters;
     const arr = Array.from(customSet);
@@ -178,8 +212,15 @@ export default function AlphabetTest(): react.JSX.Element {
     return base.map((l) => (uppercase ? l.toUpperCase() : l));
   }, [choicePool, uppercase, shuffleGrid]);
 
+  useEffect(() => {
+    if (started) return;
+    choicePool.forEach((l) => {
+      const a = new Audio(`${AUDIO_BASE}/${l}.mp3`);
+      a.preload = "auto";
+    });
+  }, [choicePool, started]);
+
   const currentLetter = questions[index]; // lower-case
-  const displayLetter = uppercase && currentLetter ? currentLetter.toUpperCase() : currentLetter;
 
   function startTest() {
     const pool = choicePool;
@@ -197,8 +238,9 @@ export default function AlphabetTest(): react.JSX.Element {
   function speakCurrent(ltr?: string) {
     const l = (ltr ?? currentLetter) as string;
     if (!l) return;
-    say(letterSound[l]); // test uses the SOUND prompt
+    playLetterAudio(l);
   }
+
 
   function onPick(guessDisplay: string) {
     if (!started || finished || locked) return; // ← block extra clicks
