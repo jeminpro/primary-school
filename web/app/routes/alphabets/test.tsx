@@ -47,22 +47,51 @@ function LetterTile({ letter, raw, onClick, highlight = "none" }: LetterTileProp
 // Helpers
 // ————————————————————————————————————————————————
 
-function sampleQuestions(pool: string[], n: number): string[] {
-  // If pool >= n -> sample without replacement; else allow repeats
-  const arr = [...pool];
-  if (arr.length >= n) {
-    // Fisher–Yates shuffle, then slice
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+function sampleQuestions(pool: string[], n: number, letterHistory: LetterHistory, isUpper: boolean): string[] {
+  // Build weights per letter from history:
+  // - letters with history: weight = 1 + (1 - successRate) * 5 (worst => highest)
+  // - letters with NO history: give a medium weight so they're asked after very-wrong ones
+  const weights: Record<string, number> = {};
+  for (const p of pool) {
+    const hist = letterHistory && letterHistory[p] ? (isUpper ? letterHistory[p].upper : letterHistory[p].lower) : [];
+    if (!hist || hist.length === 0) {
+      weights[p] = 3.5; // new letters get moderate priority (after very-wrong)
+    } else {
+      const sum = hist.reduce((s, v) => s + (v ? 1 : 0), 0);
+      const success = sum / hist.length;
+      weights[p] = 1 + (1 - success) * 5; // range ~1..6
     }
-    return arr.slice(0, n);
   }
+
+  // We want to produce a list of length n where we only repeat letters after
+  // exhausting the full pool. We'll form cycles: in each cycle we pick without
+  // replacement using the weights, then refill and continue if more picks are needed.
   const out: string[] = [];
-  for (let i = 0; i < n; i++) {
-    out.push(pool[Math.floor(Math.random() * pool.length)]);
+  let remaining = [...pool];
+
+  // helper: pick one weighted item from `remaining`, remove it and return it
+  function pickOne(): string {
+    const total = remaining.reduce((s, k) => s + (weights[k] ?? 1), 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < remaining.length; i++) {
+      const k = remaining[i];
+      const w = weights[k] ?? 1;
+      r -= w;
+      if (r <= 0) {
+        remaining.splice(i, 1);
+        return k;
+      }
+    }
+    // fallback
+    return remaining.splice(0, 1)[0];
   }
-  return out;
+
+  while (out.length < n) {
+    if (remaining.length === 0) remaining = [...pool];
+    out.push(pickOne());
+  }
+
+  return out.slice(0, n);
 }
 
 // NEW: light shuffle helper (for grid order)
@@ -220,7 +249,7 @@ export default function AlphabetTest(): react.JSX.Element {
 
   function startTest() {
     const pool = choicePool;
-    const qs = sampleQuestions(pool, qCount);
+    const qs = sampleQuestions(pool, qCount, letterHistory, uppercase);
     setQuestions(qs);
     setResults([]);
     setIndex(0);
