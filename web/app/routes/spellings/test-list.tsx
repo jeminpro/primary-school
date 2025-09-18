@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Pencil, BookOpen, Trash2, Edit3, MoreVertical } from "lucide-react";
 import type { SpellingTest, SpellingResult } from "../../lib/spellings-db";
 
 export interface TestListProps {
@@ -66,24 +67,35 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                   </div>
                   {lastResult && (
                     <div className="mt-1 text-xs text-base-content/70">
-                      Last attempt: <span className="font-semibold text-primary">{new Date(lastResult.date).toLocaleDateString()}</span>
+                      Last attempt: {new Date(lastResult.date).toLocaleDateString()}
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                    <button className="btn btn-xs btn-info btn-outline font-bold w-full sm:w-auto" onClick={() => onEdit(test)}>
-                      <span role="img" aria-label="edit">�️</span> Edit
+                  <div className="flex flex-row gap-2 w-full sm:w-auto items-center">
+                    <button className="btn btn-sm btn-outline font-bold w-full sm:w-auto" onClick={() => onTest(test)}>
+                      <Pencil size={16} className="mr-1" /> Test
                     </button>
-                    <button className="btn btn-xs btn-error btn-outline font-bold w-full sm:w-auto" onClick={() => { setDeleteId(test.id!); setModalOpen(true); setPendingTest({ id: test.id!, name: test.name }); }}>
-                      <span role="img" aria-label="delete">🗑️</span> Delete
-                    </button>
-                    <button className="btn btn-xs btn-primary btn-outline font-bold w-full sm:w-auto" onClick={() => onLearn(test)}>
-                      <span role="img" aria-label="book">�</span> Learn
-                    </button>
-                    <button className="btn btn-xs btn-accent btn-outline font-bold w-full sm:w-auto" onClick={() => onTest(test)}>
-                      <span role="img" aria-label="pencil">✏️</span> Test
-                    </button>
+                    <div className="dropdown dropdown-end">
+                      <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
+                      <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-36">
+                        <li>
+                          <button className="flex items-center gap-2" onClick={() => onLearn(test)}>
+                            <BookOpen size={16} /> Learn
+                          </button>
+                        </li>
+                        <li>
+                          <button className="flex items-center gap-2" onClick={() => onEdit(test)}>
+                            <Edit3 size={16} /> Edit
+                          </button>
+                        </li>
+                        <li>
+                          <button className="flex items-center gap-2 text-error" onClick={() => { setDeleteId(test.id!); setModalOpen(true); setPendingTest({ id: test.id!, name: test.name }); }}>
+                            <Trash2 size={16} /> Delete
+                          </button>
+                        </li>                        
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>

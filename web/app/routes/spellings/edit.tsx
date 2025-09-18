@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Trash2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingWord } from "../../lib/spellings-db";
 
@@ -90,28 +91,37 @@ export default function EditSpellingTest() {
       </div>
       <div>
         <label className="block font-semibold mb-2">Words <span className="text-error">*</span></label>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {words.map((w, idx) => (
-            <div key={idx} className="flex gap-2 items-end">
-              <div className="flex-1">
-                <input
-                  className="input input-bordered w-full mb-1"
-                  placeholder="Word"
-                  value={w.word}
-                  onChange={e => handleWordChange(idx, "word", e.target.value)}
-                  required
-                  ref={el => { wordRefs.current[idx] = el; }}
-                />
-                <input
-                  className="input input-bordered w-full"
-                  placeholder="Sentence (optional)"
-                  value={w.sentence || ""}
-                  onChange={e => handleWordChange(idx, "sentence", e.target.value)}
-                />
+            <div key={idx} className="card bg-base-100 shadow border border-primary/20 p-4 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <input
+                    className="input input-bordered w-full"
+                    placeholder="Word"
+                    value={w.word}
+                    onChange={e => handleWordChange(idx, "word", e.target.value)}
+                    required
+                    ref={el => { wordRefs.current[idx] = el; }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm p-1 flex items-center"
+                  style={{ height: '2.5rem' }}
+                  onClick={() => handleRemoveWord(idx)}
+                  disabled={words.length === 1}
+                  title="Remove word"
+                >
+                  <Trash2 size={18} className="text-error" />
+                </button>
               </div>
-              <button type="button" className="btn btn-error btn-xs" onClick={() => handleRemoveWord(idx)} disabled={words.length === 1}>
-                Remove
-              </button>
+              <input
+                className="input input-bordered w-full"
+                placeholder="Sentence (optional)"
+                value={w.sentence || ""}
+                onChange={e => handleWordChange(idx, "sentence", e.target.value)}
+              />
             </div>
           ))}
         </div>
