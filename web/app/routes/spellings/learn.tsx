@@ -70,7 +70,7 @@ export default function LearnSpellingPage() {
     <div className="bg-white rounded-xl shadow p-6 max-w-xl mx-auto mt-8">
       <div className="mb-4 flex items-center justify-between">
         <button className="btn btn-ghost btn-sm" onClick={() => navigate("/spellings")}>← Back</button>
-        <h2 className="text-2xl font-bold text-orange-400">Learn Words</h2>
+  <h2 className="text-2xl font-bold text-primary">Learn Words</h2>
         <div />
       </div>
       <div className="space-y-6">

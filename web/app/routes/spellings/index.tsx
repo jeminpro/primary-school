@@ -47,7 +47,7 @@ export default function SpellingsMainPage() {
     <div className="bg-white rounded-xl shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <button className="btn btn-ghost btn-sm" onClick={() => navigate("/")}>← Back</button>
-        <h2 className="text-2xl font-bold text-orange-400">Spelling Tests</h2>
+  <h2 className="text-2xl font-bold text-primary">Spelling Tests</h2>
         <button className="btn btn-primary btn-sm" onClick={handleAdd}>Add</button>
       </div>
       {loading ? (

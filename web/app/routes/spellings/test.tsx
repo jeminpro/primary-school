@@ -78,7 +78,7 @@ export default function SpellingTestPage() {
     const correctCount = summary.filter(s => s.correct).length;
     return (
       <div className="bg-white rounded-xl shadow p-6 max-w-xl mx-auto mt-8">
-        <h2 className="text-2xl font-bold mb-4 text-orange-400">Test Summary</h2>
+  <h2 className="text-2xl font-bold mb-4 text-primary">Test Summary</h2>
         <div className="mb-4">You got <span className="font-bold text-success">{correctCount}</span> out of <span className="font-bold">{test.words.length}</span> correct.</div>
         <div className="space-y-2 mb-6">
           {summary.map((s, i) => (
@@ -100,15 +100,14 @@ export default function SpellingTestPage() {
     <div className="bg-white rounded-xl shadow p-6 max-w-xl mx-auto mt-8">
       <div className="mb-4 flex items-center justify-between">
         <button className="btn btn-ghost btn-sm" onClick={() => navigate("/spellings")}>← Back</button>
-        <h2 className="text-2xl font-bold text-orange-400">Spell the word</h2>
+  <h2 className="text-2xl font-bold text-primary">Spell the word</h2>
         <div />
       </div>
-      <div className="mb-2 text-lg font-semibold">{step + 1} / {test.words.length}</div>
-      <div className="mb-4">
-        <button className="btn btn-circle btn-accent mr-2" onClick={handleRepeat} title="Repeat">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="text-lg font-semibold">{step + 1} / {test.words.length}</div>
+        <button className="btn btn-circle btn-info" onClick={handleRepeat} title="Repeat">
           <span role="img" aria-label="speaker">🔊</span>
         </button>
-        <span className="font-bold text-xl">Listen and type the word.</span>
       </div>
       <input
         className="input input-bordered w-full text-lg"

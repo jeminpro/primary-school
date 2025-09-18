@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import type { SpellingTest, SpellingResult } from "../../lib/spellings-db";
 
 export interface TestListProps {
@@ -10,48 +10,100 @@ export interface TestListProps {
 }
 
 export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListProps) {
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pendingTest, setPendingTest] = useState<{ id: number; name: string } | null>(null);
+
+  async function handleDelete(testId: number) {
+    // Remove from IndexedDB and reload (or call a prop if you want to lift state)
+    const { spellingsDB } = await import("../../lib/spellings-db");
+    await spellingsDB.tests.delete(testId);
+    setDeleteId(null);
+    setModalOpen(false);
+    setPendingTest(null);
+    // Optionally, you can trigger a reload or callback here
+    window.location.reload();
+  }
+
   return (
-    <div className="space-y-4">
-      {tests.length === 0 ? (
-        <div className="text-base-content/60">No spelling tests yet. Click <span className='font-semibold'>Add</span> to create your first test!</div>
-      ) : (
-        tests.map((test) => {
-          const testResults = results[test.id ?? -1] || [];
-          const lastResult = testResults[testResults.length - 1];
-          const percent = lastResult && lastResult.answers.length > 0
-            ? Math.round(100 * lastResult.answers.filter(a => a.correct).length / lastResult.answers.length)
-            : null;
-          return (
-            <div key={test.id} className="card bg-base-100 shadow border border-base-200 flex flex-row items-center p-4 gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-orange-500">{test.name}</span>
-                  <span className="badge badge-outline badge-sm">{test.words.length} words</span>
-                </div>
-                {lastResult && (
-                  <div className="mt-1 text-xs text-base-content/60">
-                    Last attempt: <span className="font-semibold">{new Date(lastResult.date).toLocaleDateString()}</span>
+    <>
+      <div className="space-y-6">
+        {tests.length === 0 ? (
+          <div className="text-base-content/60 text-center bg-yellow-50 rounded-xl p-6 shadow font-semibold">
+            <span className="text-orange-500">No spelling tests yet.</span> Click <span className='font-bold text-primary'>Add</span> to create your first test!
+          </div>
+        ) : (
+          tests.map((test, idx) => {
+            const testResults = results[test.id ?? -1] || [];
+            const lastResult = testResults[testResults.length - 1];
+            const percent = lastResult && lastResult.answers.length > 0
+              ? Math.round(100 * lastResult.answers.filter(a => a.correct).length / lastResult.answers.length)
+              : null;
+            return (
+              <div
+                key={test.id}
+                className="card shadow-xl border-2 border-primary/30 bg-base-100 flex flex-col sm:flex-row items-center p-4 sm:p-5 gap-4 sm:gap-6"
+              >
+                <div className="flex-1 w-full">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span className="text-xl font-extrabold text-primary drop-shadow">{test.name}</span>
+                    <span className="badge badge-lg badge-warning text-base font-bold shadow">{test.words.length} words</span>
+                    {percent !== null && (
+                      <span className={
+                        `ml-2 inline-flex items-center px-2 py-1 rounded bg-success/10 border border-success/40 text-success text-xs font-bold gap-1`}
+                        title="Last result"
+                      >
+                        {percent >= 80 ? (
+                          <span role="img" aria-label="star">⭐</span>
+                        ) : percent >= 50 ? (
+                          <span role="img" aria-label="check">✔️</span>
+                        ) : (
+                          <span role="img" aria-label="cross">❌</span>
+                        )}
+                        {percent}%
+                      </span>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                {percent !== null && (
-                  <div className="flex items-center justify-center">
-                    <div className="radial-progress text-success text-lg" style={{"--value": percent, "--size": "2.5rem", "--thickness": "6px"} as any}>
-                      <span className="font-bold">{percent}%</span>
+                  {lastResult && (
+                    <div className="mt-1 text-xs text-base-content/70">
+                      Last attempt: <span className="font-semibold text-primary">{new Date(lastResult.date).toLocaleDateString()}</span>
                     </div>
+                  )}
+                </div>
+                <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <button className="btn btn-xs btn-info btn-outline font-bold w-full sm:w-auto" onClick={() => onEdit(test)}>
+                      <span role="img" aria-label="edit">�️</span> Edit
+                    </button>
+                    <button className="btn btn-xs btn-error btn-outline font-bold w-full sm:w-auto" onClick={() => { setDeleteId(test.id!); setModalOpen(true); setPendingTest({ id: test.id!, name: test.name }); }}>
+                      <span role="img" aria-label="delete">🗑️</span> Delete
+                    </button>
+                    <button className="btn btn-xs btn-primary btn-outline font-bold w-full sm:w-auto" onClick={() => onLearn(test)}>
+                      <span role="img" aria-label="book">�</span> Learn
+                    </button>
+                    <button className="btn btn-xs btn-accent btn-outline font-bold w-full sm:w-auto" onClick={() => onTest(test)}>
+                      <span role="img" aria-label="pencil">✏️</span> Test
+                    </button>
                   </div>
-                )}
-                <div className="flex gap-2">
-                  <button className="btn btn-xs btn-primary" onClick={() => onLearn(test)}>Learn</button>
-                  <button className="btn btn-xs btn-accent" onClick={() => onTest(test)}>Test</button>
-                  <button className="btn btn-xs btn-ghost" onClick={() => onEdit(test)}>Edit</button>
                 </div>
               </div>
+            );
+          })
+        )}
+      </div>
+      {/* Confirm Delete Modal */}
+      {modalOpen && pendingTest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full">
+            <div className="font-bold text-lg mb-2 text-error">Delete Test</div>
+            <div className="mb-4">Are you sure you want to delete <span className="font-bold text-primary">{pendingTest.name}</span>?</div>
+            <div className="flex gap-2 justify-end">
+              <button className="btn btn-ghost" onClick={() => { setModalOpen(false); setDeleteId(null); setPendingTest(null); }}>Cancel</button>
+              <button className="btn btn-error" onClick={() => handleDelete(pendingTest.id)}>Delete</button>
             </div>
-          );
-        })
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }
