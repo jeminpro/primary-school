@@ -34,7 +34,16 @@ export default function EditSpellingTest() {
 
   useEffect(() => {
     if (focusIndex !== null && wordRefs.current[focusIndex]) {
-      wordRefs.current[focusIndex]?.focus();
+      const input = wordRefs.current[focusIndex];
+      input?.focus();
+      // Scroll input into view near the top of the page for mobile keyboard visibility
+      setTimeout(() => {
+        input?.scrollIntoView({ block: "start", behavior: "smooth" });
+        // Optionally, add a small offset from the top
+        if (window.scrollY > 20) {
+          window.scrollBy({ top: -20, behavior: "smooth" });
+        }
+      }, 100);
       setFocusIndex(null);
     }
   }, [words, focusIndex]);

@@ -43,8 +43,31 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
             return (
               <div
                 key={test.id}
-                className="card shadow-xl border-2 border-primary/30 bg-base-100 flex flex-col sm:flex-row items-center p-4 sm:p-5 gap-4 sm:gap-6"
+                className="card shadow-xl border-2 border-primary/30 bg-base-100 flex flex-col sm:flex-row items-center p-4 sm:p-5 gap-4 sm:gap-6 relative"
               >
+                {/* Dropdown for small screens, absolutely positioned top-right */}
+                <div className="block sm:hidden absolute top-3 right-3 z-10">
+                  <div className="dropdown dropdown-end">
+                    <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
+                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-36">
+                      <li>
+                        <button className="flex items-center gap-2" onClick={() => onLearn(test)}>
+                          <BookOpen size={16} /> Learn
+                        </button>
+                      </li>
+                      <li>
+                        <button className="flex items-center gap-2" onClick={() => onEdit(test)}>
+                          <Edit3 size={16} /> Edit
+                        </button>
+                      </li>
+                      <li>
+                        <button className="flex items-center gap-2 text-error" onClick={() => { setDeleteId(test.id!); setModalOpen(true); setPendingTest({ id: test.id!, name: test.name }); }}>
+                          <Trash2 size={16} /> Delete
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
                 <div className="flex-1 w-full">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span className="text-xl font-extrabold text-primary drop-shadow">{test.name}</span>
@@ -76,25 +99,28 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                     <button className="btn btn-sm btn-outline font-bold w-full sm:w-auto" onClick={() => onTest(test)}>
                       <NotebookPen size={16} className="mr-1" />  Test
                     </button>
-                    <div className="dropdown dropdown-end">
-                      <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
-                      <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-36">
-                        <li>
-                          <button className="flex items-center gap-2" onClick={() => onLearn(test)}>
-                            <BookOpen size={16} /> Learn
-                          </button>
-                        </li>
-                        <li>
-                          <button className="flex items-center gap-2" onClick={() => onEdit(test)}>
-                            <Edit3 size={16} /> Edit
-                          </button>
-                        </li>
-                        <li>
-                          <button className="flex items-center gap-2 text-error" onClick={() => { setDeleteId(test.id!); setModalOpen(true); setPendingTest({ id: test.id!, name: test.name }); }}>
-                            <Trash2 size={16} /> Delete
-                          </button>
-                        </li>                        
-                      </ul>
+                    {/* Dropdown for larger screens, inline */}
+                    <div className="hidden sm:block">
+                      <div className="dropdown dropdown-end">
+                        <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
+                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-36">
+                          <li>
+                            <button className="flex items-center gap-2" onClick={() => onLearn(test)}>
+                              <BookOpen size={16} /> Learn
+                            </button>
+                          </li>
+                          <li>
+                            <button className="flex items-center gap-2" onClick={() => onEdit(test)}>
+                              <Edit3 size={16} /> Edit
+                            </button>
+                          </li>
+                          <li>
+                            <button className="flex items-center gap-2 text-error" onClick={() => { setDeleteId(test.id!); setModalOpen(true); setPendingTest({ id: test.id!, name: test.name }); }}>
+                              <Trash2 size={16} /> Delete
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </div>
