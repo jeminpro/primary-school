@@ -44,7 +44,12 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
     const a = document.createElement("a");
     a.href = url;
     const safeName = test.name.replace(/[^a-z0-9\-\_]+/gi, "-").replace(/-+/g, "-");
-    a.download = `spelling-test-${safeName}-${test.id}.json`;
+    const stamp = (() => {
+      const d = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}_${pad(d.getMonth() + 1)}_${pad(d.getDate())}_${pad(d.getHours())}_${pad(d.getMinutes())}`;
+    })();
+    a.download = `spelling-${safeName}-${test.id}-${stamp}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
