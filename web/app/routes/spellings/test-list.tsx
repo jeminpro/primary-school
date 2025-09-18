@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NotebookPen, BookOpen, Trash2, Edit3, MoreVertical } from "lucide-react";
+import { NotebookPen, BookOpen, Trash2, Edit3, MoreVertical, Download } from "lucide-react";
 import type { SpellingTest, SpellingResult } from "../../lib/spellings-db";
 
 export interface TestListProps {
@@ -14,6 +14,42 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [pendingTest, setPendingTest] = useState<{ id: number; name: string } | null>(null);
+
+  async function handleExport(test: SpellingTest) {
+    const { spellingsDB } = await import("../../lib/spellings-db");
+    const testId = test.id!;
+    const relatedResults = await spellingsDB.results.where("testId").equals(testId).toArray();
+    // sanitize: remove id/createdAt/updatedAt from test; id/testId from results; id from words
+    const sanitizedTest = {
+      name: test.name,
+      words: test.words.map(({ id: _wid, ...w }) => ({ ...w })),
+    } as const;
+    const sanitizedResults = relatedResults.map(r => ({
+      date: r.date,
+      answers: r.answers,
+    }));
+
+    const payload = {
+      meta: {
+        exportedAt: new Date().toISOString(),
+        version: 1
+      },
+      test: {
+        ...sanitizedTest,
+        results: sanitizedResults
+      }
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safeName = test.name.replace(/[^a-z0-9\-\_]+/gi, "-").replace(/-+/g, "-");
+    a.download = `spelling-test-${safeName}-${test.id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 
   async function handleDelete(testId: number) {
     // Remove from IndexedDB and reload (or call a prop if you want to lift state)
@@ -49,7 +85,7 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                 <div className="block sm:hidden absolute top-3 right-3 z-10">
                   <div className="dropdown dropdown-end">
                     <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
-                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-36">
+                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
                       <li>
                         <button className="flex items-center gap-2" onClick={() => onLearn(test)}>
                           <BookOpen size={16} /> Learn
@@ -58,6 +94,11 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                       <li>
                         <button className="flex items-center gap-2" onClick={() => onEdit(test)}>
                           <Edit3 size={16} /> Edit
+                        </button>
+                      </li>
+                      <li>
+                        <button className="flex items-center gap-2" onClick={() => handleExport(test)}>
+                          <Download size={16} /> Export
                         </button>
                       </li>
                       <li>
@@ -103,7 +144,7 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                     <div className="hidden sm:block">
                       <div className="dropdown dropdown-end">
                         <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-36">
+                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
                           <li>
                             <button className="flex items-center gap-2" onClick={() => onLearn(test)}>
                               <BookOpen size={16} /> Learn
@@ -112,6 +153,11 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                           <li>
                             <button className="flex items-center gap-2" onClick={() => onEdit(test)}>
                               <Edit3 size={16} /> Edit
+                            </button>
+                          </li>
+                          <li>
+                            <button className="flex items-center gap-2" onClick={() => handleExport(test)}>
+                              <Download size={16} /> Export
                             </button>
                           </li>
                           <li>
