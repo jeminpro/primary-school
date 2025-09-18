@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Volume2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingResult } from "../../lib/spellings-db";
@@ -25,6 +25,8 @@ export default function SpellingTestPage() {
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
   const [shuffledWords, setShuffledWords] = useState<SpellingTest["words"]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const doneBtnRef = useRef<HTMLButtonElement | null>(null);
 
   // Shuffle words only once when test is loaded
   useEffect(() => {
@@ -45,6 +47,23 @@ export default function SpellingTestPage() {
     }
     // eslint-disable-next-line
   }, [step, shuffledWords]);
+
+  // Focus the input whenever the step (question) changes and we're not on summary
+  useEffect(() => {
+    if (!showSummary) {
+      // Delay slightly to ensure DOM is updated before focusing
+      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      return () => clearTimeout(t);
+    }
+  }, [step, showSummary]);
+
+  // When summary is shown, focus the Done button
+  useEffect(() => {
+    if (showSummary) {
+      const t = setTimeout(() => doneBtnRef.current?.focus(), 0);
+      return () => clearTimeout(t);
+    }
+  }, [showSummary]);
 
   if (!test) {
     return <div className="alert alert-error mt-8">No test selected.</div>;
@@ -102,7 +121,9 @@ export default function SpellingTestPage() {
             </div>
           ))}
         </div>
-        <button className="btn btn-primary" onClick={handleSaveResult} disabled={saving}>{saving ? "Saving…" : "Done"}</button>
+        <div className="flex justify-end">
+          <button ref={doneBtnRef} className="btn btn-primary" onClick={handleSaveResult} disabled={saving}>{saving ? "Saving…" : "Done"}</button>
+        </div>
       </div>
     );
   }
@@ -128,6 +149,7 @@ export default function SpellingTestPage() {
         placeholder="Type the word..."
         value={input}
         onChange={e => setInput(e.target.value)}
+        ref={inputRef}
         autoFocus
         onKeyDown={e => { if (e.key === "Enter") handleNext(); }}
         autoComplete="off"

@@ -15,7 +15,7 @@ async function fetchDictionary(word: string) {
     const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
     if (!res.ok) return null;
     const data = await res.json();
-    return data[0];
+    return data; // return full array of entries
   } catch {
     return null;
   }
@@ -26,7 +26,7 @@ export default function LearnSpellingPage() {
   const navigate = useNavigate();
   const test: SpellingTest | undefined = location.state?.test;
   const [results, setResults] = useState<SpellingResult[]>([]);
-  const [dict, setDict] = useState<any>(null);
+  const [dict, setDict] = useState<any[] | null>(null);
   const [dictLoading, setDictLoading] = useState(false);
   const [dictError, setDictError] = useState<string | null>(null);
   const [dictWord, setDictWord] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function LearnSpellingPage() {
     setDictError(null);
     setDictWord(word);
     const data = await fetchDictionary(word);
-    if (!data) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
       setDictError("No dictionary entry found.");
       setDict(null);
     } else {
@@ -100,12 +100,43 @@ export default function LearnSpellingPage() {
               <div className="mt-2">
                 {dictLoading && <span className="loading loading-spinner loading-xs"></span>}
                 {dictError && <div className="alert alert-error p-2 text-xs">{dictError}</div>}
-                {dict && !dictError && (
-                  <div className="text-xs">
-                    <div className="font-bold mb-1">{dict.word} <span className="opacity-60">({dict.phonetic})</span></div>
-                    {dict.meanings?.map((m: any, i: number) => (
-                      <div key={i} className="mb-1">
-                        <span className="font-semibold">{m.partOfSpeech}:</span> {m.definitions?.[0]?.definition}
+                {Array.isArray(dict) && dict.length > 0 && !dictError && (
+                  <div className="text-xs space-y-2">
+                    {dict.map((entry: any, ei: number) => (
+                      <div key={ei} className="space-y-1">
+                        {entry.meanings?.map((m: any, mi: number) => (
+                          <div key={`${ei}-${mi}`} className="mb-2">
+                            <div className="font-semibold capitalize">{m.partOfSpeech}</div>
+                            <ol className="list-decimal list-inside space-y-1">
+                              {m.definitions?.map((d: any, di: number) => (
+                                <li key={`${ei}-${mi}-${di}`}>
+                                  <span>{d.definition}</span>
+                                  {d.example && <div className="opacity-70 italic">e.g., {d.example}</div>}
+                                  {(((d.synonyms?.length ?? 0) > 0) || ((d.antonyms?.length ?? 0) > 0)) && (
+                                    <div className="mt-0.5">
+                                      {d.synonyms?.length ? (
+                                        <span><span className="opacity-70">Synonyms:</span> {d.synonyms.join(", ")}</span>
+                                      ) : null}
+                                      {d.antonyms?.length ? (
+                                        <span className="ml-2"><span className="opacity-70">Antonyms:</span> {d.antonyms.join(", ")}</span>
+                                      ) : null}
+                                    </div>
+                                  )}
+                                </li>
+                              ))}
+                            </ol>
+                            {(((m.synonyms?.length ?? 0) > 0) || ((m.antonyms?.length ?? 0) > 0)) && (
+                              <div className="mt-1">
+                                {m.synonyms?.length ? (
+                                  <div><span className="opacity-70">Synonyms:</span> {m.synonyms.join(", ")}</div>
+                                ) : null}
+                                {m.antonyms?.length ? (
+                                  <div><span className="opacity-70">Antonyms:</span> {m.antonyms.join(", ")}</div>
+                                ) : null}
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>

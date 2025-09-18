@@ -57,16 +57,19 @@ export default function EditSpellingTest() {
       setError("Test name is required.");
       return;
     }
-    if (words.some(w => !w.word.trim())) {
-      setError("All words must have a value.");
-      return;
-    }
     setSaving(true);
     try {
+      const processedWords = words
+        .map(w => {
+          const word = w.word.trim();
+          const sentenceTrimmed = (w.sentence ?? "").trim();
+          return { word, sentence: sentenceTrimmed.length ? sentenceTrimmed : undefined } as SpellingWord;
+        })
+        .filter(w => w.word.length > 0);
       const test: SpellingTest = {
         ...editingTest,
         name: name.trim(),
-        words: words.map(w => ({ word: w.word.trim(), sentence: w.sentence?.trim() })),
+        words: processedWords,
         createdAt: editingTest?.createdAt || Date.now(),
         updatedAt: Date.now(),
       };
@@ -112,7 +115,6 @@ export default function EditSpellingTest() {
                     placeholder="Word"
                     value={w.word}
                     onChange={e => handleWordChange(idx, "word", e.target.value)}
-                    required
                     ref={el => { wordRefs.current[idx] = el; }}
                   />
                 </div>
