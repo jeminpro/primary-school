@@ -119,7 +119,7 @@ export default function SpellingTestPage() {
       <div className="mb-4 flex items-center justify-between">
         <div className="text-lg font-semibold">{step + 1} / {shuffledWords.length}</div>
         <button className="btn btn-ghost flex items-center gap-2" onClick={handleRepeat} title="Repeat">
-          <Volume2 size={22} className="text-info" />A
+          <Volume2 size={22} className="text-info" />
           <span className="text-info font-semibold">Repeat</span>
         </button>
       </div>
