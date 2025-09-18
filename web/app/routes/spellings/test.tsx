@@ -116,6 +116,10 @@ export default function SpellingTestPage() {
         onChange={e => setInput(e.target.value)}
         autoFocus
         onKeyDown={e => { if (e.key === "Enter") handleNext(); }}
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
       />
       <div className="mt-6 flex gap-2 justify-end">
         <button className="btn btn-ghost" onClick={() => navigate("/spellings")}>Cancel</button>

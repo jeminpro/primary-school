@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingWord } from "../../lib/spellings-db";
 
@@ -15,6 +15,8 @@ export default function EditSpellingTest() {
   const [words, setWords] = useState<SpellingWord[]>(editingTest?.words || [emptyWord()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const wordRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
 
   function handleWordChange(idx: number, field: keyof SpellingWord, value: string) {
     setWords(w => w.map((word, i) => i === idx ? { ...word, [field]: value } : word));
@@ -22,11 +24,19 @@ export default function EditSpellingTest() {
 
   function handleAddWord() {
     setWords(w => [...w, emptyWord()]);
+    setFocusIndex(words.length); // focus the new word input
   }
 
   function handleRemoveWord(idx: number) {
     setWords(w => w.length > 1 ? w.filter((_, i) => i !== idx) : w);
   }
+
+  useEffect(() => {
+    if (focusIndex !== null && wordRefs.current[focusIndex]) {
+      wordRefs.current[focusIndex]?.focus();
+      setFocusIndex(null);
+    }
+  }, [words, focusIndex]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -90,6 +100,7 @@ export default function EditSpellingTest() {
                   value={w.word}
                   onChange={e => handleWordChange(idx, "word", e.target.value)}
                   required
+                  ref={el => { wordRefs.current[idx] = el; }}
                 />
                 <input
                   className="input input-bordered w-full"
