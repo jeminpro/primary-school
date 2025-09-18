@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingResult } from "../../lib/spellings-db";
+import { Plus } from "lucide-react";
 import { TestList } from "./test-list";
 
 export default function SpellingsMainPage() {
@@ -48,7 +49,10 @@ export default function SpellingsMainPage() {
       <div className="flex items-center justify-between mb-4">
         <button className="btn btn-ghost btn-sm" onClick={() => navigate("/")}>← Back</button>
   <h2 className="text-2xl font-bold text-primary">Spelling Tests</h2>
-        <button className="btn btn-primary btn-sm" onClick={handleAdd}>Add</button>
+        <button className="btn btn-primary btn-sm flex items-center gap-2" onClick={handleAdd}>
+          <Plus size={16} />
+          Add
+        </button>
       </div>
       {loading ? (
         <div className="text-base-content/60">Loading…</div>

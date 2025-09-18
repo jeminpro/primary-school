@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingWord } from "../../lib/spellings-db";
 
@@ -36,12 +36,14 @@ export default function EditSpellingTest() {
     if (focusIndex !== null && wordRefs.current[focusIndex]) {
       const input = wordRefs.current[focusIndex];
       input?.focus();
-      // Scroll input into view near the top of the page for mobile keyboard visibility
       setTimeout(() => {
-        input?.scrollIntoView({ block: "start", behavior: "smooth" });
-        // Optionally, add a small offset from the top
-        if (window.scrollY > 20) {
-          window.scrollBy({ top: -20, behavior: "smooth" });
+        // Instead of scrolling the input to the top, scroll the 'Add Word' button into view
+        const addWordBtn = document.getElementById("add-word-btn");
+        if (addWordBtn) {
+          addWordBtn.scrollIntoView({ block: "end", behavior: "smooth" });
+        } else {
+          // fallback: scroll input into view
+          input?.scrollIntoView({ block: "start", behavior: "smooth" });
         }
       }, 100);
       setFocusIndex(null);
@@ -134,7 +136,12 @@ export default function EditSpellingTest() {
             </div>
           ))}
         </div>
-        <button type="button" className="btn btn-secondary btn-sm mt-3" onClick={handleAddWord}>Add Word</button>
+        <div className="flex justify-end mt-3">
+          <button id="add-word-btn" type="button" className="btn btn-secondary btn-sm flex items-center gap-2" onClick={handleAddWord}>
+            <Plus size={16} />
+            Add Word
+          </button>
+        </div>
       </div>
       <div className="mt-6 flex gap-2 justify-end">
         <button type="button" className="btn btn-ghost" onClick={() => navigate("/spellings")}>Cancel</button>

@@ -71,7 +71,7 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                 <div className="flex-1 w-full">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span className="text-xl font-extrabold text-primary drop-shadow">{test.name}</span>
-                    <span className="badge badge-lg badge-warning text-base font-bold shadow">{test.words.length} words</span>
+                    <span className="badge badge-soft text-base  shadow">{test.words.length} words</span>
                     {percent !== null && (
                       <span className={
                         `ml-2 inline-flex items-center px-2 py-1 rounded border border-gray-500 text-xs font-bold gap-1`}
@@ -132,7 +132,7 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
       {/* Confirm Delete Modal */}
       {modalOpen && pendingTest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-lg p-6 max-w-xs w-full">
+          <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="font-bold text-lg mb-2 text-error">Delete Test</div>
             <div className="mb-4">Are you sure you want to delete <span className="font-bold text-primary">{pendingTest.name}</span>?</div>
             <div className="flex gap-2 justify-end">
