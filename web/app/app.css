@@ -1,11 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Comic+Relief:wght@400;700&family=Handlee&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "tailwindcss";
+@import "daisyui";
 
-@plugin "daisyui";
-
-@theme {
+:root {
   --font-sans: "Comic Relief", "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+.bg-illustrations {
+  background-size: clamp(150px, 25%, 300px) auto, clamp(200px, 50%, 600px) auto;
+}
+
+@media (max-height: 700px) {
+  .bg-illustrations {
+    background-size: clamp(100px, 20%, 200px) auto, clamp(150px, 40%, 400px) auto;
+  }
+}
+
+.bg-illustrations {
+  background-size: clamp(150px, 25%, 300px) auto, clamp(200px, 50%, 600px) auto;
+}
+
+@media (max-height: 700px) {
+  .bg-illustrations {
+    background-size: clamp(100px, 20%, 200px) auto, clamp(150px, 40%, 400px) auto;
+  }
+}
 
