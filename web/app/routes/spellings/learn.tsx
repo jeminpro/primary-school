@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BookOpen, Volume2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingResult } from "../../lib/spellings-db";
 
@@ -76,10 +77,18 @@ export default function LearnSpellingPage() {
       <div className="space-y-6">
         {test.words.map((w, idx) => (
           <div key={idx} className="card bg-base-100 shadow border border-base-200 p-4 flex flex-col gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 justify-between">
               <span className="text-lg font-bold">{w.word}</span>
-              <button className="btn btn-xs btn-accent" onClick={() => speak(w.word + (w.sentence ? ". " + w.sentence : ""))}>Speak</button>
-              <button className="btn btn-xs btn-info" onClick={() => handleDictionary(w.word)}>Dictionary</button>
+              <div className="flex gap-2">
+                <button className="btn btn-xs btn-info flex items-center gap-1" onClick={() => handleDictionary(w.word)}>
+                  <BookOpen size={15} />
+                  <span>Dictionary</span>
+                </button>
+                <button className="btn btn-xs btn-accent flex items-center gap-1" onClick={() => speak(w.word + (w.sentence ? ". " + w.sentence : ""))}>
+                  <Volume2 size={15} />
+                  <span>Speak</span>
+                </button>
+              </div>
             </div>
             {w.sentence && <div className="text-base-content/70 italic">{w.sentence}</div>}
             <div className="flex gap-1 mt-1">

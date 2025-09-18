@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pencil, BookOpen, Trash2, Edit3, MoreVertical } from "lucide-react";
+import { NotebookPen, BookOpen, Trash2, Edit3, MoreVertical } from "lucide-react";
 import type { SpellingTest, SpellingResult } from "../../lib/spellings-db";
 
 export interface TestListProps {
@@ -51,12 +51,12 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                     <span className="badge badge-lg badge-warning text-base font-bold shadow">{test.words.length} words</span>
                     {percent !== null && (
                       <span className={
-                        `ml-2 inline-flex items-center px-2 py-1 rounded bg-success/10 border border-success/40 text-success text-xs font-bold gap-1`}
+                        `ml-2 inline-flex items-center px-2 py-1 rounded border border-gray-500 text-xs font-bold gap-1`}
                         title="Last result"
                       >
                         {percent >= 80 ? (
                           <span role="img" aria-label="star">⭐</span>
-                        ) : percent >= 50 ? (
+                        ) : percent > 50 ? (
                           <span role="img" aria-label="check">✔️</span>
                         ) : (
                           <span role="img" aria-label="cross">❌</span>
@@ -74,7 +74,7 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                 <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
                   <div className="flex flex-row gap-2 w-full sm:w-auto items-center">
                     <button className="btn btn-sm btn-outline font-bold w-full sm:w-auto" onClick={() => onTest(test)}>
-                      <Pencil size={16} className="mr-1" /> Test
+                      <NotebookPen size={16} className="mr-1" />  Test
                     </button>
                     <div className="dropdown dropdown-end">
                       <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
