@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import react, { useEffect, useMemo, useRef, useState } from "react";
-import reactRouterConfig from "../../../react-router.config";
-
+import { AUDIO_BASE, say, letterSound, loadLetterHistory, saveLetterHistory, pushLetterHistory } from "../../lib/alphabet";
+import type { LetterHistory } from "../../lib/alphabet";
 import {
   ArrowLeft,
   Volume2,
@@ -11,28 +11,10 @@ import {
   CaseLower,
 } from "lucide-react";
 
-/** Guarded TTS helper (safe during SSR) */
-function say(text: string) {
-  if (typeof window === "undefined") return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.9; // calm
-  u.pitch = 1;
-  u.lang = "en-GB"; // UK voice
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
-}
-
-/** Simple phonics lines */
-const letterSound: Record<string, string> = {
-  a: "a", b: "b", c: "c", d: "d", e: "e", f: "f", g: "g", h: "h",
-  i: "i", j: "j", k: "k", l: "l", m: "m", n: "n", o: "o", p: "p",
-  q: "q", r: "r", s: "s", t: "t", u: "u", v: "v", w: "w", x: "x",
-  y: "y", z: "z",
-};
+// `say` and `letterSound` are provided by the shared `lib/alphabet` module
 
 const letters = "abcdefghijklmnopqrstuvwxyz".split("");
 
-const AUDIO_BASE = reactRouterConfig.basename + "/alphabets";
 
 type Result = { target: string; guess: string; correct: boolean };
 
@@ -96,57 +78,7 @@ function shuffle<T>(arr: T[]): T[] {
 // LocalStorage key for test settings
 const LS_TEST_PREFS = "alpha_test_prefs_v2";
 
-// LocalStorage key for per-letter history (last 5 answers per case)
-const LS_LETTER_HISTORY = "alpha_letter_history_v1";
-
-type LetterHistory = {
-  [k: string]: {
-    upper: boolean[]; // newest entries at end
-    lower: boolean[];
-  };
-};
-
-function loadLetterHistory(): LetterHistory {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(LS_LETTER_HISTORY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as LetterHistory;
-    const out: LetterHistory = {};
-    for (const ch of Object.keys(parsed || {})) {
-      if (!/^[a-z]$/.test(ch)) continue;
-      const entry = parsed[ch] || { upper: [], lower: [] };
-      out[ch] = {
-        upper: Array.isArray(entry.upper) ? entry.upper.slice(-5).map(Boolean) : [],
-        lower: Array.isArray(entry.lower) ? entry.lower.slice(-5).map(Boolean) : [],
-      };
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
-
-function saveLetterHistory(hist: LetterHistory) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(LS_LETTER_HISTORY, JSON.stringify(hist));
-  } catch {
-    // ignore
-  }
-}
-
-function pushLetterHistory(hist: LetterHistory, raw: string, isUpper: boolean, correct: boolean): LetterHistory {
-  const ch = raw.toLowerCase();
-  const next: LetterHistory = { ...hist };
-  if (!next[ch]) next[ch] = { upper: [], lower: [] };
-  const arr = isUpper ? [...next[ch].upper] : [...next[ch].lower];
-  arr.push(Boolean(correct));
-  const sliced = arr.slice(-5);
-  if (isUpper) next[ch].upper = sliced;
-  else next[ch].lower = sliced;
-  return next;
-}
+// Letter history helpers imported from shared lib
 
 // ————————————————————————————————————————————————
 // Main component
@@ -346,11 +278,9 @@ export default function AlphabetTest(): react.JSX.Element {
 
   // ——— UI ———
   return (
-    <main className="relative min-h-screen bg-gradient-to-b from-sky-200 to-sky-100 overflow-hidden">
-      <PeppaBackdrop />
-
+    <div className="relative z-10">
       {/* Header row */}
-      <div className="relative z-10 p-4">
+      <div className="p-4">
         <div className="flex items-center justify-between gap-3">
           <Link
             to="/alphabets"
@@ -678,9 +608,7 @@ export default function AlphabetTest(): react.JSX.Element {
         </section>
       )}
 
-      {/* Bottom hill overlay */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-green-300/80 to-green-200/20" />
-    </main>
+    </div>
   );
 }
 
@@ -688,33 +616,4 @@ export default function AlphabetTest(): react.JSX.Element {
 // Background scene: clouds + sun + hills (Peppa-ish vibe)
 // ————————————————————————————————————————————————
 
-function PeppaBackdrop(): react.JSX.Element {
-  return (
-    <div className="absolute inset-0 -z-0" aria-hidden>
-      {/* sun */}
-      <div className="absolute right-6 top-6 w-20 h-20 rounded-full bg-yellow-300 shadow-[0_0_0_6px_rgba(253,224,71,0.5)]" />
-
-      {/* clouds */}
-      <Cloud className="absolute left-8 top-14 scale-100" />
-      <Cloud className="absolute right-16 top-24 scale-75" />
-      <Cloud className="absolute left-1/2 top-10 -translate-x-1/2 scale-90" />
-
-      {/* hills */}
-      <div className="absolute -bottom-16 -left-10 w-80 h-48 bg-green-300 rounded-[50%] blur-[1px]" />
-      <div className="absolute -bottom-20 left-40 w-96 h-56 bg-green-400 rounded-[50%] blur-[1px]" />
-      <div className="absolute -bottom-24 right-0 w-96 h-52 bg-green-300 rounded-[50%] blur-[1px]" />
-    </div>
-  );
-}
-
-function Cloud({ className = "" }: { className?: string }): react.JSX.Element {
-  return (
-    <div className={"text-white/90 drop-shadow " + className}>
-      <div className="flex items-center gap-1">
-        <div className="bg-white w-14 h-8 rounded-full" />
-        <div className="bg-white w-10 h-10 rounded-full -ml-3" />
-        <div className="bg-white w-16 h-9 rounded-full -ml-4" />
-      </div>
-    </div>
-  );
-}
+// Backdrop and Cloud helpers removed — provided by layout

@@ -13,10 +13,7 @@ import { ArrowLeft, BookOpen, PencilLine } from "lucide-react";
  */
 export default function AlphabetLanding(): react.JSX.Element {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-sky-200 to-sky-100">
-      {/* Peppa-ish background scene */}
-      <PeppaBackdrop />
-
+    <div className="relative z-10">
       {/* Top bar */}
       <div className="relative navbar bg-transparent p-4">
         <div className="flex-1">
@@ -79,7 +76,6 @@ export default function AlphabetLanding(): react.JSX.Element {
           </div>
         </div>
       </section>
-      
     </div>
   );
 }
