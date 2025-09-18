@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Volume2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingResult } from "../../lib/spellings-db";
 
@@ -23,30 +24,42 @@ export default function SpellingTestPage() {
   const [input, setInput] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [shuffledWords, setShuffledWords] = useState<SpellingTest["words"]>([]);
+
+  // Shuffle words only once when test is loaded
+  useEffect(() => {
+    if (test) {
+      const arr = [...test.words];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      setShuffledWords(arr);
+    }
+  }, [test]);
 
   useEffect(() => {
-    if (test && step < test.words.length) {
-      const w = test.words[step];
+    if (shuffledWords.length > 0 && step < shuffledWords.length) {
+      const w = shuffledWords[step];
       speakWordAndSentence(w.word, w.sentence);
     }
     // eslint-disable-next-line
-  }, [step, test]);
+  }, [step, shuffledWords]);
 
   if (!test) {
     return <div className="alert alert-error mt-8">No test selected.</div>;
   }
 
-
   function handleRepeat() {
-    if (!test) return;
-    const w = test.words[step];
+    if (!shuffledWords.length) return;
+    const w = shuffledWords[step];
     speakWordAndSentence(w.word, w.sentence);
   }
 
   function handleNext() {
     setAnswers(a => [...a, input]);
     setInput("");
-    if (test && step + 1 < test.words.length) {
+    if (shuffledWords.length && step + 1 < shuffledWords.length) {
       setStep(step + 1);
     } else {
       setShowSummary(true);
@@ -59,7 +72,7 @@ export default function SpellingTestPage() {
     const result: SpellingResult = {
       testId: test.id!,
       date: Date.now(),
-      answers: test.words.map((w, i) => ({
+      answers: shuffledWords.map((w, i) => ({
         word: w.word,
         correct: answers[i]?.trim().toLowerCase() === w.word.trim().toLowerCase(),
       })),
@@ -70,7 +83,7 @@ export default function SpellingTestPage() {
   }
 
   if (showSummary && test) {
-    const summary = test.words.map((w, i) => ({
+    const summary = shuffledWords.map((w, i) => ({
       word: w.word,
       user: answers[i] || "",
       correct: (answers[i] || "").trim().toLowerCase() === w.word.trim().toLowerCase(),
@@ -78,8 +91,8 @@ export default function SpellingTestPage() {
     const correctCount = summary.filter(s => s.correct).length;
     return (
       <div className="bg-white rounded-xl shadow p-6 max-w-xl mx-auto mt-8">
-  <h2 className="text-2xl font-bold mb-4 text-primary">Test Summary</h2>
-        <div className="mb-4">You got <span className="font-bold text-success">{correctCount}</span> out of <span className="font-bold">{test.words.length}</span> correct.</div>
+        <h2 className="text-2xl font-bold mb-4 text-primary">Test Summary</h2>
+        <div className="mb-4">You got <span className="font-bold text-success">{correctCount}</span> out of <span className="font-bold">{shuffledWords.length}</span> correct.</div>
         <div className="space-y-2 mb-6">
           {summary.map((s, i) => (
             <div key={i} className="flex gap-2 items-center">
@@ -94,19 +107,20 @@ export default function SpellingTestPage() {
     );
   }
 
-  if (!test) return null;
-  const w = test.words[step];
+  if (!test || !shuffledWords.length) return null;
+  const w = shuffledWords[step];
   return (
     <div className="bg-white rounded-xl shadow p-6 max-w-xl mx-auto mt-8">
       <div className="mb-4 flex items-center justify-between">
         <button className="btn btn-ghost btn-sm" onClick={() => navigate("/spellings")}>← Back</button>
-  <h2 className="text-2xl font-bold text-primary">Spell the word</h2>
+        <h2 className="text-2xl font-bold text-primary">Spell the word</h2>
         <div />
       </div>
       <div className="mb-4 flex items-center justify-between">
-        <div className="text-lg font-semibold">{step + 1} / {test.words.length}</div>
-        <button className="btn btn-circle btn-info" onClick={handleRepeat} title="Repeat">
-          <span role="img" aria-label="speaker">🔊</span>
+        <div className="text-lg font-semibold">{step + 1} / {shuffledWords.length}</div>
+        <button className="btn btn-ghost flex items-center gap-2" onClick={handleRepeat} title="Repeat">
+          <Volume2 size={22} className="text-info" />A
+          <span className="text-info font-semibold">Repeat</span>
         </button>
       </div>
       <input
