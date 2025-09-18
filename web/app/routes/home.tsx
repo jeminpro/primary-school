@@ -115,6 +115,7 @@ export default function PrimarySchoolLanding() {
   const categories: readonly Category[] = useMemo(
     () => [
       { key: "alphabets", title: "Alphabets", to: "/alphabets", icon: BookA, gradient: "from-pink-400 via-rose-400 to-red-400", badge: "A–Z" },
+      { key: "spellings", title: "Spellings", to: "/spellings", icon: Puzzle, gradient: "from-yellow-200 via-orange-300 to-pink-300", badge: "Words" },
       { key: "phonics", title: "Phonics", to: "#", icon: Volume2, gradient: "from-amber-300 via-amber-400 to-orange-400", badge: "Sounds" },
       { key: "numbers", title: "Numbers", to: "#", icon: Calculator, gradient: "from-emerald-300 via-emerald-400 to-teal-400", badge: "1–100" },
       { key: "times-tables", title: "Times Tables", to: "#", icon: Puzzle, gradient: "from-green-300 via-lime-400 to-yellow-300", badge: "×1–×12" },

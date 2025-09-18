@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "dexie": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/dexie": "^1.3.35"
+  }
+}
