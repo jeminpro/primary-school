@@ -14,7 +14,7 @@ export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props
   const acc = total ? Math.round((correct / total) * 100) : 0;
   return (
     <div className="space-y-4">
-      <div className="stats w-full shadow">
+      <div className="stats w-full shadow bg-base-100">
         <div className="stat">
           <div className="stat-title">Accuracy</div>
           <div className="stat-value">{acc}%</div>

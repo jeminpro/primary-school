@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { getAccuracyForTable, getMedianMsForTable, ttDB } from "../../lib/timestables-db";
 import { Timer } from "lucide-react";
+import { ScoreCard } from "../../components/timestables/ScoreCard";
 
 function TableTips({ n }: { n: number }) {
   const tips: Record<number, string[]> = {
@@ -116,11 +117,20 @@ export default function TimesTablesLearn() {
           <p className="text-sm text-base-content/70">Tap a number below to explore facts and tips.</p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {rows.sort((x, y) => x.a - y.a).map(r => (
-            <button key={r.a} className="btn" onClick={() => setFocus(r.a)} aria-label={`Open ${r.a} times table`}>
-              ×{r.a}
-            </button>
-          ))}
+          {Array.from({ length: 12 }, (_, i) => {
+            const r = rows.find(x => x.a === i + 1);
+            return (
+              <ScoreCard
+                key={i + 1}
+                table={i + 1}
+                accuracy={r ? r.acc : 0}
+                medianMs={r ? r.med : 0}
+                selectable
+                selected={false}
+                onToggle={() => setFocus(i + 1)}
+              />
+            );
+          })}
         </div>
       </div>
     );
