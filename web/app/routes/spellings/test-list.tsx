@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NotebookPen, BookOpen, Trash2, Edit3, MoreVertical, Download } from "lucide-react";
 import type { SpellingTest, SpellingResult } from "../../lib/spellings-db";
+import { getTimeAgo } from "../../lib/utils";
 
 export interface TestListProps {
   tests: SpellingTest[];
@@ -92,7 +93,11 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                     <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
                     <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
                       <li>
-                        <button className="flex items-center gap-2" onClick={() => onLearn(test)}>
+                        <button 
+                          className={`flex items-center gap-2 ${test.words.length === 0 ? 'btn-disabled' : ''}`}
+                          onClick={() => test.words.length > 0 && onLearn(test)}
+                          disabled={test.words.length === 0}
+                        >
                           <BookOpen size={16} /> Learn
                         </button>
                       </li>
@@ -114,35 +119,42 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                     </ul>
                   </div>
                 </div>
-                <div className="flex-1 w-full">
+                <div className="flex-1 w-full pr-12 sm:pr-0">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span className="text-xl font-extrabold text-primary drop-shadow">{test.name}</span>
-                    <span className="badge badge-soft text-base  shadow">{test.words.length} words</span>
-                    {percent !== null && (
-                      <span className={
-                        `ml-2 inline-flex items-center px-2 py-1 rounded border border-gray-500 text-xs font-bold gap-1`}
-                        title="Last result"
-                      >
-                        {percent >= 80 ? (
-                          <span role="img" aria-label="star">⭐</span>
-                        ) : percent > 50 ? (
-                          <span role="img" aria-label="check">✔️</span>
-                        ) : (
-                          <span role="img" aria-label="cross">❌</span>
-                        )}
-                        {percent}%
-                      </span>
-                    )}
+                    <span className="badge badge-soft text-base shadow">{test.words.length} words</span>
                   </div>
                   {lastResult && (
-                    <div className="mt-1 text-xs text-base-content/70">
-                      Last attempt: {new Date(lastResult.date).toLocaleDateString()}
+                    <div className="mt-1 text-xs text-base-content/70 flex flex-wrap items-center gap-2">
+                      <span>Last attempt: {getTimeAgo(lastResult.date)}</span>
+                      {percent !== null && (
+                        <span className={
+                          `inline-flex items-center px-2 py-1 rounded text-xs font-bold gap-1`}
+                          title="Last result"
+                        >
+                          {percent >= 80 ? (
+                            <span role="img" aria-label="star">⭐</span>
+                          ) : percent > 50 ? (
+                            <span role="img" aria-label="check">✔️</span>
+                          ) : (
+                            <span role="img" aria-label="cross">❌</span>
+                          )}
+                          {percent}%
+                          {percent !== 100 && percent !== 0 && (
+                            <span className="ml-1">({lastResult.answers.filter(a => a.correct).length}/{lastResult.answers.length})</span>
+                          )}
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
                 <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
                   <div className="flex flex-row gap-2 w-full sm:w-auto items-center">
-                    <button className="btn btn-sm btn-outline font-bold w-full sm:w-auto" onClick={() => onTest(test)}>
+                    <button 
+                      className="btn btn-sm btn-outline font-bold w-full sm:w-auto" 
+                      onClick={() => onTest(test)}
+                      disabled={test.words.length === 0}
+                    >
                       <NotebookPen size={16} className="mr-1" />  Test
                     </button>
                     {/* Dropdown for larger screens, inline */}
@@ -151,7 +163,11 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                         <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
                           <li>
-                            <button className="flex items-center gap-2" onClick={() => onLearn(test)}>
+                            <button 
+                              className={`flex items-center gap-2 ${test.words.length === 0 ? 'opacity-50 cursor-not-allowed text-base-content/50' : ''}`}
+                              onClick={() => test.words.length > 0 && onLearn(test)}
+                              disabled={test.words.length === 0}
+                            >
                               <BookOpen size={16} /> Learn
                             </button>
                           </li>

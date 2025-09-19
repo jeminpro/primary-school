@@ -148,7 +148,6 @@ export default function SpellingsMainPage() {
     <div className="bg-white rounded-xl shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <button className="btn btn-ghost btn-sm" onClick={() => navigate("/")}>← Back</button>
-  <h2 className="text-2xl font-bold text-primary">Spelling Tests</h2>
         <div className="flex items-center gap-2">
           <button className="btn btn-primary btn-sm flex items-center gap-2" onClick={handleAdd}>
             <Plus size={16} />

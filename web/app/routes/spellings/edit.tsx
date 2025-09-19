@@ -90,7 +90,7 @@ export default function EditSpellingTest() {
     <form className="bg-white rounded-xl shadow p-6 max-w-xl mx-auto" onSubmit={handleSubmit}>
       <div className="mb-4 flex items-center justify-between">
         <button className="btn btn-ghost btn-sm" type="button" onClick={() => navigate("/spellings")}>← Back</button>
-  <h2 className="text-2xl font-bold text-primary">{editingTest ? "Edit" : "Add"} Spelling Test</h2>
+  <h2 className="text-2xl font-bold text-primary">{editingTest ? "Edit" : "Add"}</h2>
         <div />
       </div>
       {error && <div className="alert alert-error mb-4">{error}</div>}
