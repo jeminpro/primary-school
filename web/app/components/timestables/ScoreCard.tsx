@@ -29,7 +29,7 @@ export function ScoreCard({ table, accuracy, medianMs, selectable, selected, onT
       onClick={selectable ? onToggle : undefined}
     >
       <div className="flex flex-col items-center justify-center gap-2 min-h-[70px]">
-        <div className="text-2xl font-bold text-center bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent drop-shadow-sm">×{table}</div>
+        <div className="text-2xl font-bold text-center bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">×{table}</div>
         <div className="mt-1 flex items-center gap-4 text-sm justify-center min-h-[24px]">
           {medianMs > 0 && (
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/60 shadow-sm" aria-label={`Median time ${formatMsToSeconds(medianMs)}`}>

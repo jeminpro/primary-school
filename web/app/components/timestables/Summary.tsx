@@ -1,6 +1,7 @@
 import React from "react";
 import { formatMsToSeconds } from "../../lib/timestables-db";
 import { Timer } from "lucide-react";
+import { useNavigate } from "react-router";
 
 type Props = {
   total: number;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props) {
+  const navigate = useNavigate();
   const acc = total ? Math.round((correct / total) * 100) : 0;
   return (
     <div className="space-y-4">
@@ -47,7 +49,8 @@ export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props
         </div>
       </div>
 
-      <div className="flex justify-center">
+      <div className="flex justify-end gap-4">
+        <button className="btn btn-neutral btn-outline" onClick={() => navigate("/timestables")}>Back to tables</button>
         <button className="btn btn-primary" onClick={onTryAgain}>Try again</button>
       </div>
     </div>
