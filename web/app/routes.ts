@@ -23,4 +23,14 @@ export default [
             route("learn", "routes/spellings/learn.tsx"),
         ]
     ),
+    // Times Tables layout with nested routes
+    route(
+        "timestables",
+        "routes/timestables/_layout.tsx",
+        [
+            index("routes/timestables/index.tsx"),
+            route("test", "routes/timestables/test.tsx"),
+            route("learn", "routes/timestables/learn.tsx"),
+        ]
+    ),
 ] satisfies RouteConfig;
