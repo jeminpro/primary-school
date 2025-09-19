@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { getAccuracyForTable, getMedianMsForTable, ttDB } from "../../lib/timestables-db";
+import { Timer } from "lucide-react";
 
 function TableTips({ n }: { n: number }) {
   const tips: Record<number, string[]> = {
@@ -69,6 +70,7 @@ export default function TimesTablesLearn() {
   const [rows, setRows] = useState<Array<{ a: number; acc: number; med: number }>>([]);
   const [focus, setFocus] = useState<number | null>(null);
   const [dots, setDots] = useState<Record<number, boolean[]>>({});
+  const [lastSpeeds, setLastSpeeds] = useState<Record<number, number>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -89,15 +91,20 @@ export default function TimesTablesLearn() {
 
   useEffect(() => {
     let alive = true;
-    async function loadDots(a: number) {
+    async function loadDotsAndSpeeds(a: number) {
       const perB: Record<number, boolean[]> = {};
+      const perSpeed: Record<number, number> = {};
       for (let b = 1; b <= 12; b++) {
         const list = await ttDB.attempts.where({ a, b }).reverse().sortBy("date");
         perB[b] = list.slice(0, 5).map(x => x.correct);
+        perSpeed[b] = list[0]?.elapsedMs || 0;
       }
-      if (alive) setDots(perB);
+      if (alive) {
+        setDots(perB);
+        setLastSpeeds(perSpeed);
+      }
     }
-    if (focus != null) loadDots(focus);
+    if (focus != null) loadDotsAndSpeeds(focus);
     return () => { alive = false; };
   }, [focus]);
 
@@ -127,17 +134,24 @@ export default function TimesTablesLearn() {
       </div>
 
       <div className="bg-base-100 rounded-xl p-4 shadow">
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-1">
           {Array.from({ length: 12 }, (_, i) => i + 1).map(b => (
-            <li key={b} className="p-3 rounded flex items-center gap-3">
-              <span className="flex gap-1" aria-hidden>
+            <li
+              key={b}
+              className="p-3 rounded grid items-center"
+              style={{ gridTemplateColumns: 'minmax(90px,1fr) 60px 60px' }}
+            >
+              <span className="truncate">{focus} × {b} = {focus! * b}</span>
+              <span className="flex gap-1 justify-center" aria-hidden>
                 {Array.from({ length: 5 }).map((_, i) => {
                   const val = dots[b]?.[i];
                   const cls = val === true ? "bg-success" : val === false ? "bg-error" : "bg-base-300";
                   return <span key={i} className={`w-2 h-2 rounded-full ${cls}`} />;
                 })}
               </span>
-              <span>{focus} × {b} = {focus! * b}</span>
+              <span className="inline-flex items-center gap-1 text-base-content/70 justify-end">
+                {lastSpeeds[b] > 0 && <><Timer size={14} /><span>{(lastSpeeds[b] / 1000).toFixed(1)}s</span></>}
+              </span>
             </li>
           ))}
         </ul>

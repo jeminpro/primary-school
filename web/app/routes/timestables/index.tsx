@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { getAccuracyForTable, getMedianMsForTable } from "../../lib/timestables-db";
+import { getAccuracyForTable, getMedianMsForTable, getAttemptCountForTable } from "../../lib/timestables-db";
 import { ScoreCard } from "../../components/timestables/ScoreCard";
 import { BookOpen, Timer } from "lucide-react";
 
 export default function TimesTablesMain() {
-  const [rows, setRows] = useState<Array<{ a: number; acc: number; med: number }>>([]);
+  const [rows, setRows] = useState<Array<{ a: number; acc: number; med: number; count: number }>>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const data: Array<{ a: number; acc: number; med: number }> = [];
+      const data: Array<{ a: number; acc: number; med: number; count: number }> = [];
       for (let a = 1; a <= 12; a++) {
-        const [acc, med] = await Promise.all([
+        const [acc, med, count] = await Promise.all([
           getAccuracyForTable(a),
-          getMedianMsForTable(a)
+          getMedianMsForTable(a),
+          getAttemptCountForTable(a),
         ]);
-        data.push({ a, acc, med });
+        data.push({ a, acc, med, count });
       }
       if (mounted) setRows(data);
     })();
@@ -53,7 +54,15 @@ export default function TimesTablesMain() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         {rows.sort((x, y) => x.a - y.a).map(r => (
-          <ScoreCard key={r.a} table={r.a} accuracy={r.acc} medianMs={r.med} />
+          <ScoreCard
+            key={r.a}
+            table={r.a}
+            accuracy={r.count ? r.acc : 0}
+            medianMs={r.count ? r.med : 0}
+            selectable
+            selected={false}
+            onToggle={() => navigate("/timestables/test", { state: { preselect: [r.a] } as any })}
+          />
         ))}
       </div>
     </div>

@@ -26,16 +26,22 @@ export function ScoreCard({ table, accuracy, medianMs, selectable, selected, onT
       <div className="flex items-center gap-4">
         <div className="flex-1">
           <div className="text-lg font-bold">×{table}</div>
-          <div className="mt-1 flex items-center gap-4 text-sm">
-            <span className="inline-flex items-center gap-1" aria-label={`Median time ${formatMsToSeconds(medianMs)}`}>
-              <Timer size={16} className="text-info" />
-              <span>{formatMsToSeconds(medianMs)}</span>
-            </span>
-            <span className="inline-flex items-center gap-1" aria-label={`Accuracy ${accuracy}%`}>
-              <Target size={16} className="text-success" />
-              <span>{Math.max(0, Math.min(100, accuracy))}%</span>
-            </span>
-          </div>
+          {(medianMs > 0 || accuracy > 0) && (
+            <div className="mt-1 flex items-center gap-4 text-sm">
+              {medianMs > 0 && (
+                <span className="inline-flex items-center gap-1" aria-label={`Median time ${formatMsToSeconds(medianMs)}`}>
+                  <Timer size={16} className="text-info" />
+                  <span>{formatMsToSeconds(medianMs)}</span>
+                </span>
+              )}
+              {accuracy > 0 && (
+                <span className="inline-flex items-center gap-1" aria-label={`Accuracy ${accuracy}%`}>
+                  <Target size={16} className="text-success" />
+                  <span>{Math.max(0, Math.min(100, accuracy))}%</span>
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </button>

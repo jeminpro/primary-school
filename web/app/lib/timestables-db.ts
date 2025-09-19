@@ -57,6 +57,10 @@ export async function getMedianMsForTable(a: number): Promise<number> {
   return times.length % 2 ? times[mid] : Math.round((times[mid - 1] + times[mid]) / 2);
 }
 
+export async function getAttemptCountForTable(a: number): Promise<number> {
+  return ttDB.attempts.where("a").equals(a).count();
+}
+
 function weightedSample<T>(items: T[], weights: number[], count: number): T[] {
   // Sampling without replacement, weights recomputed each draw
   const result: T[] = [];
