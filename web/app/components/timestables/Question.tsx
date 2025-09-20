@@ -32,7 +32,7 @@ export function Question({ index, total, q, onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className="text-center text-xl mb-4">Q {index + 1} of {total}</div>
+      <div className="mb-5 ">Q {index + 1} of {total}</div>
       <div className="flex items-center justify-center gap-3 text-4xl font-extrabold mb-6">
         <span aria-hidden>{q.a}</span>
         <span aria-hidden>×</span>
@@ -52,7 +52,7 @@ export function Question({ index, total, q, onSubmit }: Props) {
         />
       </div>
       <div className="flex justify-center">
-        <button type="submit" className="btn btn-primary">Submit</button>
+        <button type="submit" className="btn btn-primary w-full">Submit</button>
       </div>
     </form>
   );
