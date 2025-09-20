@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { getAccuracyForTable, getMedianMsForTable, ttDB } from "../../lib/timestables-db";
+import { getAccuracyForTable, getAverageMsForTable, ttDB } from "../../lib/timestables-db";
 import { Timer } from "lucide-react";
 import { ScoreCard } from "../../components/timestables/ScoreCard";
 
@@ -81,7 +81,7 @@ export default function TimesTablesLearn() {
       for (let a = 1; a <= 12; a++) {
         const [acc, med] = await Promise.all([
           getAccuracyForTable(a),
-          getMedianMsForTable(a)
+          getAverageMsForTable(a)
         ]);
         data.push({ a, acc, med });
       }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { getAccuracyForTable, getMedianMsForTable, getAttemptCountForTable } from "../../lib/timestables-db";
+import { getAccuracyForTable, getAverageMsForTable, getAttemptCountForTable } from "../../lib/timestables-db";
 import { ScoreCard } from "../../components/timestables/ScoreCard";
 import { BookOpen, Timer } from "lucide-react";
 
@@ -15,7 +15,7 @@ export default function TimesTablesMain() {
       for (let a = 1; a <= 12; a++) {
         const [acc, med, count] = await Promise.all([
           getAccuracyForTable(a),
-          getMedianMsForTable(a),
+          getAverageMsForTable(a),
           getAttemptCountForTable(a),
         ]);
         data.push({ a, acc, med, count });

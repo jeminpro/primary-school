@@ -4,7 +4,7 @@ import { ScoreCard } from "../../components/timestables/ScoreCard";
 import { TestToolbar } from "../../components/timestables/TestToolbar";
 import { Question, type QuestionModel } from "../../components/timestables/Question";
 import { Summary } from "../../components/timestables/Summary";
-import { getAccuracyForTable, getMedianMsForTable, recordAttempt, sampleQuestions } from "../../lib/timestables-db";
+import { getAccuracyForTable, getAverageMsForTable, recordAttempt, sampleQuestions } from "../../lib/timestables-db";
 
 export default function TimesTablesTest() {
   const location = useLocation() as any;
@@ -34,7 +34,7 @@ export default function TimesTablesTest() {
       for (let a = 1; a <= 12; a++) {
         const [acc, med] = await Promise.all([
           getAccuracyForTable(a),
-          getMedianMsForTable(a)
+          getAverageMsForTable(a)
         ]);
         data.push({ a, acc, med });
       }
@@ -73,9 +73,9 @@ export default function TimesTablesTest() {
       // Build summary
       const total = answers.length + 1;
       const correct = (answers.filter(a => a.correct).length) + (ans.correct ? 1 : 0);
-      const times = [...answers.map(a => a.elapsedMs), ans.elapsedMs].sort((x, y) => x - y);
-      const mid = Math.floor(times.length / 2);
-      const medianMs = times.length % 2 ? times[mid] : Math.round((times[mid - 1] + times[mid]) / 2);
+      const times = [...answers.map(a => a.elapsedMs), ans.elapsedMs];
+      const sum = times.reduce((acc, time) => acc + time, 0);
+      const medianMs = Math.round(sum / times.length); // Actually average now, keeping variable name for compatibility
 
       const grouped: Record<number, Array<{ a: number; b: number; answer: number; correct: boolean; elapsedMs: number }>> = {};
       const all = [...answers, { a: q.a, b: q.b, value: ans.value, correct: ans.correct, elapsedMs: ans.elapsedMs }].map(r => ({

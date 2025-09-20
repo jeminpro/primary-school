@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 type Props = {
   total: number;
   correct: number;
-  medianMs: number;
+  medianMs: number; // now used for average time
   byTable: Array<{ a: number; items: Array<{ a: number; b: number; answer: number; correct: boolean; elapsedMs: number }> }>;
   onTryAgain: () => void;
 };
@@ -22,7 +22,7 @@ export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props
           <div className="stat-value">{acc}%</div>
         </div>
         <div className="stat">
-          <div className="stat-title">Median Time</div>
+          <div className="stat-title">Average Time</div>
           <div className="stat-value">{formatMsToSeconds(medianMs)}</div>
         </div>
       </div>

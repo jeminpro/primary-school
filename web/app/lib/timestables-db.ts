@@ -57,6 +57,15 @@ export async function getMedianMsForTable(a: number): Promise<number> {
   return times.length % 2 ? times[mid] : Math.round((times[mid - 1] + times[mid]) / 2);
 }
 
+export async function getAverageMsForTable(a: number): Promise<number> {
+  const attempts = await ttDB.attempts.where("a").equals(a).reverse().sortBy("date");
+  const recent = attempts.slice(-30).filter(r => r.correct);
+  if (recent.length === 0) return 0;
+  const times = recent.map(r => r.elapsedMs);
+  const sum = times.reduce((acc, time) => acc + time, 0);
+  return Math.round(sum / times.length);
+}
+
 export async function getAttemptCountForTable(a: number): Promise<number> {
   return ttDB.attempts.where("a").equals(a).count();
 }
