@@ -18,11 +18,11 @@ export function TestToolbar({ selectedCount, total, canStart, onSelectAll, onCle
         <button className="btn btn-sm" onClick={onSelectAll} aria-label="Select all tables">Select All</button>
         <button className="btn btn-sm" onClick={onClear} aria-label="Clear selection">Clear</button>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
         <div className="flex items-center gap-2">
           <span className="label-text">Questions</span>
           <div className="join" role="radiogroup" aria-label="Number of questions">
-            {[6, 12, 20, 30].map(n => (
+            {[6, 12, 24].map(n => (
               <button
                 key={n}
                 type="button"
@@ -36,7 +36,12 @@ export function TestToolbar({ selectedCount, total, canStart, onSelectAll, onCle
             ))}
           </div>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={onStart} disabled={!canStart} aria-disabled={!canStart}>
+        <button 
+          className="btn btn-primary btn-sm w-full md:w-auto mt-3 md:mt-0" 
+          onClick={onStart} 
+          disabled={!canStart} 
+          aria-disabled={!canStart}
+        >
           Start Test ({selectedCount})
         </button>
       </div>
