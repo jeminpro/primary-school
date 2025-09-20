@@ -39,11 +39,14 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
   // Normalize value between 0 and 1
   const normalizedValue = Math.min(Math.max(value, 0), maxValue) / maxValue;
   
-  // Calculate indicator position
-  const indicatorPosition = width * normalizedValue;
+  // Circle indicator size - slightly larger than the bar height, but smaller than before
+  const indicatorSize = Math.min(height * 1.8, 14);
   
-  // Triangle size - slightly smaller to fit inside the dial
-  const triangleSize = Math.min(height * 0.7, 5);
+  // Calculate circle radius
+  const circleRadius = indicatorSize/2;
+  
+  // Calculate indicator position - allow full range
+  const indicatorPosition = width * normalizedValue;
   
   // Format rating for display
   const capitalizedRating = rating.charAt(0).toUpperCase() + rating.slice(1);
@@ -51,18 +54,30 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
   // Define a unique ID for the gradient
   const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
   
-  // Adjust the height to accommodate text if needed, but no extra space for triangle
-  const svgHeight = showRatingText ? height + 16 : height;
+  // Adjust the height to accommodate the circle and text
+  const extraPadding = indicatorSize / 2;
+  const svgHeight = showRatingText ? height + extraPadding + 16 : height + extraPadding;
+  
+  // Add extra space in viewBox to ensure circles at edges are fully visible
+  const viewBoxWidth = width + indicatorSize;
+  const viewBoxX = -indicatorSize/2;
+  
+  // Style for the SVG to allow overflow but not affect layout too much
+  const svgStyle = {
+    ...style,
+    position: "relative" as const,
+    overflow: "visible"
+  };
   
   const sliderSvg = (
     <svg
       width={width}
       height={svgHeight}
-      viewBox={`0 0 ${width} ${svgHeight}`}
+      viewBox={`${viewBoxX} 0 ${viewBoxWidth} ${svgHeight}`}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="inline-block"
-      style={style}
+      style={svgStyle}
     >
       {/* Define the gradient */}
       <defs>
@@ -73,10 +88,10 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
         </linearGradient>
       </defs>
       
-      {/* Background track - gradient slider */}
+      {/* Background track - gradient slider, centered vertically */}
       <rect
         x="0"
-        y="0"
+        y={extraPadding / 2}
         width={width}
         height={height}
         rx={height / 2}
@@ -85,21 +100,33 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
         strokeWidth="0.5"
       />
       
-      {/* Indicator triangle - pointing upwards and inside the dial */}
+      {/* Circle indicator - similar to the attached example */}
       {showIndicator && (
-        <polygon
-          points={`${indicatorPosition - triangleSize/2},${height/2 + triangleSize/2} ${indicatorPosition + triangleSize/2},${height/2 + triangleSize/2} ${indicatorPosition},${height/2 - triangleSize/2}`}
-          fill="black"
-          stroke="white"
-          strokeWidth="0.5"
-        />
+        <>
+          {/* Shadow effect for depth */}
+          <circle
+            cx={indicatorPosition}
+            cy={height/2 + extraPadding/2}
+            r={(indicatorSize+1)/2}
+            fill="rgba(0,0,0,0.15)"
+          />
+          {/* Main circle indicator */}
+          <circle
+            cx={indicatorPosition}
+            cy={height/2 + extraPadding/2}
+            r={indicatorSize/2}
+            fill="#777777"
+            stroke="white"
+            strokeWidth="1.5"
+          />
+        </>
       )}
       
       {/* Rating text label */}
       {showRatingText && (
         <text
           x={width / 2}
-          y={height + 12}
+          y={height + extraPadding + 12}
           textAnchor="middle"
           fontSize="10"
           fontFamily="Arial, sans-serif"
@@ -119,7 +146,7 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
     };
     
     return (
-      <div className={`flex flex-col items-center ${className}`}>
+      <div className={`flex flex-col items-center ${className}`} style={{overflow: "visible"}}>
         {sliderSvg}
         <span 
           className="text-xs mt-1 font-medium" 
@@ -131,7 +158,7 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
     );
   }
 
-  return sliderSvg;
+  return <div style={{overflow: "visible"}}>{sliderSvg}</div>;
 };
 
 // Helper functions to determine rating based on time and accuracy
