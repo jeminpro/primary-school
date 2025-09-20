@@ -31,7 +31,7 @@ export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props
           <div className="flex flex-col items-start gap-3">
             <div className="text-2xl sm:text-3xl font-bold text-gray-800">{acc}%</div>
             <div className="tooltip" data-tip={`${getRatingRange("accuracy", accuracyRating)}: ${getRatingDescription("accuracy", accuracyRating)}`}>
-              <RatingDial value={acc} rating={accuracyRating} width={100} height={6} />
+              <RatingDial value={acc} rating={accuracyRating} width={100} height={6} showRatingText={true} />
             </div>
           </div>
         </div>
@@ -45,7 +45,8 @@ export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props
                 value={(6 - Math.min(avgTimeInSeconds, 6)) / 6 * 100} 
                 rating={timeRating} 
                 width={100} 
-                height={6} 
+                height={6}
+                showRatingText={true}
               />
             </div>
           </div>

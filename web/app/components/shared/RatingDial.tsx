@@ -10,6 +10,7 @@ interface ProgressDialProps {
   showIndicator?: boolean; // Whether to show the indicator triangle (default: true)
   rating: RatingLevel; // Rating level that determines the color
   showLabel?: boolean; // Whether to show the rating label below the dial
+  showRatingText?: boolean; // Whether to show the rating text (bad, average, good, excellent) below the dial
   className?: string; // Additional CSS classes
   style?: React.CSSProperties; // Optional additional styles
 }
@@ -31,6 +32,7 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
   showIndicator = true,
   rating,
   showLabel = false,
+  showRatingText = false,
   className = "",
   style = {},
 }) => {
@@ -40,19 +42,23 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
   // Calculate indicator position
   const indicatorPosition = width * normalizedValue;
   
-  // Triangle size
-  const triangleSize = height * 0.8;
+  // Triangle size - slightly smaller to fit inside the dial
+  const triangleSize = Math.min(height * 0.7, 5);
   
+  // Format rating for display
   const capitalizedRating = rating.charAt(0).toUpperCase() + rating.slice(1);
   
   // Define a unique ID for the gradient
   const gradientId = `gradient-${Math.random().toString(36).substr(2, 9)}`;
   
+  // Adjust the height to accommodate text if needed, but no extra space for triangle
+  const svgHeight = showRatingText ? height + 16 : height;
+  
   const sliderSvg = (
     <svg
       width={width}
-      height={height + triangleSize + 2}
-      viewBox={`0 0 ${width} ${height + triangleSize + 2}`}
+      height={svgHeight}
+      viewBox={`0 0 ${width} ${svgHeight}`}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="inline-block"
@@ -79,14 +85,28 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
         strokeWidth="0.5"
       />
       
-      {/* Indicator triangle */}
+      {/* Indicator triangle - pointing upwards and inside the dial */}
       {showIndicator && (
         <polygon
-          points={`${indicatorPosition - triangleSize/2},${height} ${indicatorPosition + triangleSize/2},${height} ${indicatorPosition},${height + triangleSize}`}
+          points={`${indicatorPosition - triangleSize/2},${height/2 + triangleSize/2} ${indicatorPosition + triangleSize/2},${height/2 + triangleSize/2} ${indicatorPosition},${height/2 - triangleSize/2}`}
           fill="black"
           stroke="white"
           strokeWidth="0.5"
         />
+      )}
+      
+      {/* Rating text label */}
+      {showRatingText && (
+        <text
+          x={width / 2}
+          y={height + 12}
+          textAnchor="middle"
+          fontSize="10"
+          fontFamily="Arial, sans-serif"
+          fill="#333333"
+        >
+          {capitalizedRating}
+        </text>
       )}
     </svg>
   );
