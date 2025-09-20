@@ -1,7 +1,9 @@
 import React from "react";
 import { formatMsToSeconds } from "../../lib/timestables-db";
-import { Timer, Check, X, ArrowLeft, RotateCw } from "lucide-react";
+import { Timer, Check, X, ArrowLeft, RotateCw, Info } from "lucide-react";
 import { useNavigate } from "react-router";
+import { ProgressDial as RatingDial, getAccuracyRating, getTimeRating } from "../shared/RatingDial";
+import { getRatingDescription, getRatingRange } from "../../lib/ratings";
 
 type Props = {
   total: number;
@@ -14,17 +16,39 @@ type Props = {
 export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props) {
   const navigate = useNavigate();
   const acc = total ? Math.round((correct / total) * 100) : 0;
+  const avgTimeInSeconds = medianMs / 1000;
+  
+  // Get ratings for accuracy and time
+  const accuracyRating = getAccuracyRating(acc);
+  const timeRating = getTimeRating(avgTimeInSeconds);
+  
   return (
     <div className="space-y-6">
-      {/* Stats Cards - Improved styling */}
+      {/* Stats Cards - Updated styling to match the image */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-base-100 rounded-xl p-5 shadow-md">
-          <div className="text-sm text-base-content/70 font-medium">Accuracy</div>
-          <div className="text-3xl font-bold mt-1">{acc}%</div>
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="text-sm text-gray-500 font-medium mb-2">Accuracy</div>
+          <div className="flex flex-col items-start gap-3">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-800">{acc}%</div>
+            <div className="tooltip" data-tip={`${getRatingRange("accuracy", accuracyRating)}: ${getRatingDescription("accuracy", accuracyRating)}`}>
+              <RatingDial value={acc} rating={accuracyRating} width={100} height={6} />
+            </div>
+          </div>
         </div>
-        <div className="bg-base-100 rounded-xl p-5 shadow-md">
-          <div className="text-sm text-base-content/70 font-medium">Average Time</div>
-          <div className="text-3xl font-bold mt-1">{formatMsToSeconds(medianMs)}</div>
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <div className="text-sm text-gray-500 font-medium mb-2">Average Time</div>
+          <div className="flex flex-col items-start gap-3">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-800">{formatMsToSeconds(medianMs)}</div>
+            <div className="tooltip" data-tip={`${getRatingRange("time", timeRating)}: ${getRatingDescription("time", timeRating)}`}>
+              {/* Invert the value for time (lower time = better performance = higher value) */}
+              <RatingDial 
+                value={(6 - Math.min(avgTimeInSeconds, 6)) / 6 * 100} 
+                rating={timeRating} 
+                width={100} 
+                height={6} 
+              />
+            </div>
+          </div>
         </div>
       </div>
 
