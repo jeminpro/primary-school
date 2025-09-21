@@ -42,7 +42,7 @@ export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props
             <div className="tooltip" data-tip={`${getRatingRange("time", timeRating)}: ${getRatingDescription("time", timeRating)}`}>
               {/* Invert the value for time (lower time = better performance = higher value) */}
               <RatingDial 
-                value={(6 - Math.min(avgTimeInSeconds, 6)) / 6 * 100} 
+                value={timeRating === "excellent" ? 100 : (6 - Math.min(avgTimeInSeconds, 6)) / 6 * 100} 
                 rating={timeRating} 
                 width={100} 
                 height={8}

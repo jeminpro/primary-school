@@ -163,7 +163,7 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
 
 // Helper functions to determine rating based on time and accuracy
 export const getTimeRating = (seconds: number): RatingLevel => {
-  if (seconds < 1.5) return "excellent";
+  if (seconds < 1.8) return "excellent";
   if (seconds < 3) return "good";
   if (seconds < 6) return "average";
   return "bad";
