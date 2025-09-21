@@ -39,14 +39,16 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
   // Normalize value between 0 and 1
   const normalizedValue = Math.min(Math.max(value, 0), maxValue) / maxValue;
   
-  // Circle indicator size - slightly larger than the bar height, but smaller than before
-  const indicatorSize = Math.min(height * 1.8, 14);
+  // Circle indicator size - make it responsive and proportional to height
+  const indicatorSize = Math.min(height * 1.6, 12);
   
   // Calculate circle radius
   const circleRadius = indicatorSize/2;
   
-  // Calculate indicator position - allow full range
-  const indicatorPosition = width * normalizedValue;
+  // Calculate indicator position - allow full range but constrain to prevent overflow
+  const minPosition = circleRadius;
+  const maxPosition = width - circleRadius;
+  const indicatorPosition = Math.max(minPosition, Math.min(width * normalizedValue, maxPosition));
   
   // Format rating for display
   const capitalizedRating = rating.charAt(0).toUpperCase() + rating.slice(1);
@@ -59,14 +61,14 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
   const svgHeight = showRatingText ? height + extraPadding + 16 : height + extraPadding;
   
   // Add extra space in viewBox to ensure circles at edges are fully visible
-  const viewBoxWidth = width + indicatorSize;
-  const viewBoxX = -indicatorSize/2;
+  const viewBoxWidth = width;
+  const viewBoxX = 0;
   
   // Style for the SVG to allow overflow but not affect layout too much
   const svgStyle = {
     ...style,
     position: "relative" as const,
-    overflow: "visible"
+    overflow: "hidden" // Changed from visible to hidden to prevent overflow
   };
   
   const sliderSvg = (
@@ -122,15 +124,16 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
         </>
       )}
       
-      {/* Rating text label */}
+      {/* Rating text label - positioned at the indicator position to prevent overflow */}
       {showRatingText && (
         <text
           x={width / 2}
           y={height + extraPadding + 12}
           textAnchor="middle"
-          fontSize="10"
+          fontSize="9"
           fontFamily="Arial, sans-serif"
           fill="#333333"
+          style={{ textRendering: "optimizeLegibility" }}
         >
           {capitalizedRating}
         </text>
@@ -146,10 +149,10 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
     };
     
     return (
-      <div className={`flex flex-col items-center ${className}`} style={{overflow: "visible"}}>
+      <div className={`flex flex-col items-center ${className}`} style={{overflow: "hidden"}}>
         {sliderSvg}
         <span 
-          className="text-xs mt-1 font-medium" 
+          className="text-xs sm:text-xs mt-1 font-medium truncate max-w-full" 
           style={{ color: getColorAtPosition() }}
         >
           {capitalizedRating}
@@ -158,7 +161,7 @@ export const ProgressDial: React.FC<ProgressDialProps> = ({
     );
   }
 
-  return <div style={{overflow: "visible"}}>{sliderSvg}</div>;
+  return <div style={{overflow: "hidden", width: '100%'}}>{sliderSvg}</div>;
 };
 
 // Helper functions to determine rating based on time and accuracy
