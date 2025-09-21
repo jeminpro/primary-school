@@ -58,7 +58,7 @@ export default function TimesTablesMain() {
                 </div>
                 <span className="text-white drop-shadow-md">Learn</span>
               </h2>
-              <p className="text-white/90 text-lg">Explore each times table (1–12), see quick tips, and view your last results per fact.</p>
+              <p className="text-white/90 text-lg">Learn and practice your times tables with helpful tips!</p>
             </div>
           </div>
         </a>
@@ -87,7 +87,7 @@ export default function TimesTablesMain() {
                 </div>
                 <span className="text-white drop-shadow-md">Test</span>
               </h2>
-              <p className="text-white/90 text-lg">Build a focused test and practice with smart question selection based on your recent answers.</p>
+              <p className="text-white/90 text-lg">Challenge yourself with a fun times tables test!</p>
             </div>
           </div>
         </a>

@@ -99,9 +99,8 @@ export function ScoreCard({ table, accuracy, medianMs, selectable, selected, onT
       aria-label={label}
       onClick={selectable ? onToggle : undefined}
     >
-      {/* Decorative bubbles for kid-friendly design */}
+      {/* Decorative bubble for kid-friendly design - only keeping top one */}
       <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-white/40"></div>
-      <div className="absolute bottom-3 left-3 w-3 h-3 rounded-full bg-white/30"></div>
       
       <div className="flex flex-col items-center justify-center gap-3 min-h-[85px]">
         <div className="text-3xl font-bold text-center bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent drop-shadow-sm">
