@@ -78,32 +78,39 @@ export function ScoreCard({ table, accuracy, medianMs, selectable, selected, onT
       <div className="flex flex-col items-center justify-center gap-2 min-h-[85px]">
         <div className="text-2xl font-bold text-center bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">×{table}</div>
         <div className="flex items-center gap-4 text-sm justify-center">
-          {medianMs > 0 && timeRating && (
-            <div className="flex flex-col items-center gap-1">
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${getRatingColors(timeRating).bg} ${getRatingColors(timeRating).border} border shadow-sm`} 
-                aria-label={`Average time ${formatMsToSeconds(medianMs)}`}
-              >
-                <Timer size={16} className={getRatingColors(timeRating).text} />
-                <span className="font-medium">{formatMsToSeconds(medianMs)}</span>
-              </span>
-              <span className={`text-xs font-medium ${getRatingColors(timeRating).text} capitalize`}>
-                {timeRating}
-              </span>
-            </div>
-          )}
-          {accuracy > 0 && accuracyRating && (
-            <div className="flex flex-col items-center gap-1">
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${getRatingColors(accuracyRating).bg} ${getRatingColors(accuracyRating).border} border shadow-sm`} 
-                aria-label={`Accuracy ${accuracy}%`}
-              >
-                <Target size={16} className={getRatingColors(accuracyRating).text} />
-                <span className="font-medium">{Math.max(0, Math.min(100, accuracy))}%</span>
-              </span>
-              <span className={`text-xs font-medium ${getRatingColors(accuracyRating).text} capitalize`}>
-                {accuracyRating}
-              </span>
-            </div>
-          )}
+          {/* Time badge - always show, use placeholder if no data */}
+          <div className="flex flex-col items-center gap-1">
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
+              timeRating 
+                ? `${getRatingColors(timeRating).bg} ${getRatingColors(timeRating).border}` 
+                : "bg-gradient-to-b from-gray-100 to-gray-50 border-gray-300"
+              } border shadow-sm`} 
+              aria-label={medianMs > 0 ? `Average time ${formatMsToSeconds(medianMs)}` : "No time data"}
+            >
+              <Timer size={16} className={timeRating ? getRatingColors(timeRating).text : "text-gray-500"} />
+              <span className="font-medium min-w-[24px] text-center">{medianMs > 0 ? formatMsToSeconds(medianMs) : "-"}</span>
+            </span>
+            <span className={`text-xs font-medium h-4 ${timeRating ? `${getRatingColors(timeRating).text} capitalize` : "text-transparent"}`}>
+              {timeRating || "placeholder"}
+            </span>
+          </div>
+          
+          {/* Accuracy badge - always show, use placeholder if no data */}
+          <div className="flex flex-col items-center gap-1">
+            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${
+              accuracyRating 
+                ? `${getRatingColors(accuracyRating).bg} ${getRatingColors(accuracyRating).border}` 
+                : "bg-gradient-to-b from-gray-100 to-gray-50 border-gray-300"
+              } border shadow-sm`} 
+              aria-label={accuracy > 0 ? `Accuracy ${accuracy}%` : "No accuracy data"}
+            >
+              <Target size={16} className={accuracyRating ? getRatingColors(accuracyRating).text : "text-gray-500"} />
+              <span className="font-medium min-w-[24px] text-center">{accuracy > 0 ? `${Math.max(0, Math.min(100, accuracy))}%` : "-"}</span>
+            </span>
+            <span className={`text-xs font-medium h-4 ${accuracyRating ? `${getRatingColors(accuracyRating).text} capitalize` : "text-transparent"}`}>
+              {accuracyRating || "placeholder"}
+            </span>
+          </div>
         </div>
       </div>
     </button>
