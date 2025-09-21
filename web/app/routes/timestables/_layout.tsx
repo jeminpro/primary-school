@@ -23,23 +23,28 @@ export default function TimesTablesLayout() {
         backgroundPosition: 'top left, bottom right'
       }}
     >
-      <div className="max-w-4xl mx-auto py-6 px-4">
-        <div className="flex items-center justify-between mb-4">
-          <button
-            className="btn btn-neutral btn-outline"
-            onClick={() => {
-              const atIndex = location.pathname === "/timestables" || location.pathname === "/timestables/";
-              if (atIndex) navigate("/"); else navigate("/timestables");
-            }}
-          > 
-            <ArrowLeft size={18} /> Back
-          </button>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-primary flex items-center gap-2">
-            <Calculator size={28} /> Times Tables
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <div className="grid grid-cols-3 items-center mb-6">
+          <div className="justify-self-start">
+            <button
+              className="btn bg-white hover:bg-blue-50 text-indigo-600 border border-indigo-100 hover:border-indigo-200 rounded-full shadow-md px-4 py-2 transition-all duration-200 flex-shrink-0"
+              onClick={() => {
+                const atIndex = location.pathname === "/timestables" || location.pathname === "/timestables/";
+                if (atIndex) navigate("/"); else navigate("/timestables");
+              }}
+            > 
+              <ArrowLeft size={18} /> <span className="ml-1 hidden sm:inline">Back</span>
+            </button>
+          </div>
+          <h1 className="flex items-center justify-center gap-2 flex-shrink-0 justify-self-center">
+            <div className="bg-violet-500 p-2 rounded-lg shadow">
+              <Calculator size={24} className="text-white" />
+            </div>
+            <span className="text-xl sm:text-3xl font-bold text-violet-600 whitespace-nowrap">Times Tables</span>
           </h1>
-          <div className="w-12" aria-hidden></div>
+          <div className="justify-self-end"></div>
         </div>
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-indigo-50">
             <Outlet  />
         </div>        
       </div>
