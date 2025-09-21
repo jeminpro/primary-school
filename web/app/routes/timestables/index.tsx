@@ -26,49 +26,81 @@ export default function TimesTablesMain() {
   }, []);
 
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-8 relative">
+      {/* Background decorative elements for kids */}
+      <div className="absolute top-6 left-6 w-24 h-24 bg-purple-200 rounded-full opacity-30 blur-xl -z-10"></div>
+      <div className="absolute bottom-8 right-8 w-32 h-32 bg-blue-200 rounded-full opacity-30 blur-xl -z-10"></div>
+      <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-green-200 rounded-full opacity-20 blur-lg -z-10"></div>
+      
+      {/* Main options */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <a
           href="/timestables/learn"
           onClick={(e) => { e.preventDefault(); navigate("/timestables/learn"); }}
-          className="card bg-gradient-to-br from-primary/20 to-info/10 shadow-md border-2 border-primary/30 hover:shadow-lg hover:border-primary/50 transition-all transform hover:-translate-y-1 cursor-pointer rounded-xl overflow-hidden"
+          className="card bg-gradient-to-br from-blue-400 to-indigo-500 text-white shadow-xl border-4 border-white 
+            hover:shadow-2xl hover:scale-105 transition-all duration-300 transform cursor-pointer rounded-3xl overflow-hidden"
           aria-label="Open Learn"
         >
-          <div className="card-body relative">
-            <div className="absolute top-0 right-0 w-20 h-20 opacity-10 rotate-12 text-primary">
-              <BookOpen size={80} strokeWidth={1.5} />
+          <div className="card-body relative p-6">
+            {/* Decorative elements */}
+            <div className="absolute top-3 right-3 w-6 h-6 bg-white/30 rounded-full"></div>
+            <div className="absolute bottom-12 right-8 w-4 h-4 bg-white/20 rounded-full"></div>
+            <div className="absolute top-1/2 right-12 w-8 h-8 bg-white/10 rounded-full"></div>
+            
+            <div className="absolute -top-4 -right-4 w-28 h-28 opacity-20 rotate-6 text-white">
+              <BookOpen size={112} strokeWidth={1} />
             </div>
-            <h2 className="card-title flex items-center gap-3 text-2xl font-extrabold">
-              <div className="bg-primary/20 p-2 rounded-lg">
-                <BookOpen size={28} className="text-primary" />
-              </div>
-              <span className="bg-gradient-to-r from-primary to-info bg-clip-text text-transparent drop-shadow-sm">Learn</span>
-            </h2>
-            <p className="text-base-content/80">Explore each times table (1–12), see quick tips, and view your last results per fact.</p>
+            
+            <div className="z-10">
+              <h2 className="card-title flex items-center gap-4 text-3xl font-extrabold mb-4">
+                <div className="bg-white/30 p-3 rounded-xl shadow-inner">
+                  <BookOpen size={32} className="text-white" />
+                </div>
+                <span className="text-white drop-shadow-md">Learn</span>
+              </h2>
+              <p className="text-white/90 text-lg">Explore each times table (1–12), see quick tips, and view your last results per fact.</p>
+            </div>
           </div>
         </a>
+        
         <a
           href="/timestables/test"
           onClick={(e) => { e.preventDefault(); navigate("/timestables/test"); }}
-          className="card bg-gradient-to-br from-purple-500/20 to-pink-500/10 shadow-md border-2 border-purple-500/30 hover:shadow-lg hover:border-purple-500/50 transition-all transform hover:-translate-y-1 cursor-pointer rounded-xl overflow-hidden"
+          className="card bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-xl border-4 border-white 
+            hover:shadow-2xl hover:scale-105 transition-all duration-300 transform cursor-pointer rounded-3xl overflow-hidden"
           aria-label="Open Test"
         >
-          <div className="card-body relative">
-            <div className="absolute top-0 right-0 w-20 h-20 opacity-10 rotate-12 text-purple-600">
-              <Timer size={80} strokeWidth={1.5} />
+          <div className="card-body relative p-6">
+            {/* Decorative elements */}
+            <div className="absolute top-3 left-6 w-5 h-5 bg-white/30 rounded-full"></div>
+            <div className="absolute bottom-8 left-12 w-4 h-4 bg-white/20 rounded-full"></div>
+            <div className="absolute top-1/3 left-1/4 w-6 h-6 bg-white/10 rounded-full"></div>
+            
+            <div className="absolute -top-4 -right-4 w-28 h-28 opacity-20 rotate-6 text-white">
+              <Timer size={112} strokeWidth={1} />
             </div>
-            <h2 className="card-title flex items-center gap-3 text-2xl font-extrabold">
-              <div className="bg-purple-500/20 p-2 rounded-lg">
-                <Timer size={28} className="text-purple-600" />
-              </div>
-              <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent drop-shadow-sm">Test</span>
-            </h2>
-            <p className="text-base-content/80">Build a focused test and practice with smart question selection based on your recent answers.</p>
+            
+            <div className="z-10">
+              <h2 className="card-title flex items-center gap-4 text-3xl font-extrabold mb-4">
+                <div className="bg-white/30 p-3 rounded-xl shadow-inner">
+                  <Timer size={32} className="text-white" />
+                </div>
+                <span className="text-white drop-shadow-md">Test</span>
+              </h2>
+              <p className="text-white/90 text-lg">Build a focused test and practice with smart question selection based on your recent answers.</p>
+            </div>
           </div>
         </a>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      {/* Section title */}
+      <h2 className="text-2xl font-bold text-slate-700 mt-10 mb-4 flex items-center">
+        <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Times Tables</span>
+        <span className="bg-purple-100 text-purple-700 text-sm font-medium rounded-full px-3 py-1 ml-3">Choose one to practice</span>
+      </h2>
+
+      {/* Times tables grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
         {rows.sort((x, y) => x.a - y.a).map(r => (
           <ScoreCard
             key={r.a}
