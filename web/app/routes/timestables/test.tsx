@@ -65,20 +65,29 @@ export default function TimesTablesTest() {
 
   async function handleSubmit(ans: { correct: boolean; value: number; elapsedMs: number }) {
     const q = questions[i];
-    await recordAttempt(q.a, q.b, ans.correct, ans.elapsedMs);
+    // Store answer in state but don't record to DB yet
     setAnswers(prev => [...prev, { a: q.a, b: q.b, value: ans.value, correct: ans.correct, elapsedMs: ans.elapsedMs }]);
+    
     if (i + 1 < questions.length) {
       setI(i + 1);
     } else {
+      // Test is complete, now record all attempts to the database
+      const currentAnswers = [...answers, { a: q.a, b: q.b, value: ans.value, correct: ans.correct, elapsedMs: ans.elapsedMs }];
+      
+      // Save all attempts to database at once
+      await Promise.all(currentAnswers.map(answer => 
+        recordAttempt(answer.a, answer.b, answer.correct, answer.elapsedMs)
+      ));
+      
       // Build summary
-      const total = answers.length + 1;
-      const correct = (answers.filter(a => a.correct).length) + (ans.correct ? 1 : 0);
-      const times = [...answers.map(a => a.elapsedMs), ans.elapsedMs];
+      const total = currentAnswers.length;
+      const correct = currentAnswers.filter(a => a.correct).length;
+      const times = currentAnswers.map(a => a.elapsedMs);
       const sum = times.reduce((acc, time) => acc + time, 0);
       const medianMs = Math.round(sum / times.length); // Actually average now, keeping variable name for compatibility
 
       const grouped: Record<number, Array<{ a: number; b: number; answer: number; correct: boolean; elapsedMs: number }>> = {};
-      const all = [...answers, { a: q.a, b: q.b, value: ans.value, correct: ans.correct, elapsedMs: ans.elapsedMs }].map(r => ({
+      const all = currentAnswers.map(r => ({
         a: r.a,
         b: r.b,
         answer: r.value,
