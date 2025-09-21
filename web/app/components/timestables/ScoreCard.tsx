@@ -80,7 +80,7 @@ export function ScoreCard({ table, accuracy, medianMs, selectable, selected, onT
   
   const tableColor = tableColors[(table - 1) % tableColors.length];
   const colorClass = `${tableColor} hover:shadow-lg hover:border-opacity-80`;
-  const selectedClass = "from-primary-300 to-primary-200 border-primary-500 shadow-lg";
+  const selectedClass = "from-violet-400 to-purple-500 border-purple-600 shadow-lg text-white";
   
   // Get ratings for time and accuracy
   const timeRating = medianMs > 0 ? getTimeRating(medianMs / 1000) : null;
@@ -89,55 +89,75 @@ export function ScoreCard({ table, accuracy, medianMs, selectable, selected, onT
   return (
     <button
       type="button"
-      className={`relative rounded-2xl p-4 border-2 shadow-md transition-all duration-300 
+      className={`relative rounded-2xl p-4 ${selected ? 'border-3' : 'border-2'} shadow-md transition-all duration-300 
         focus:outline-none focus-visible:ring-2 ring-offset-2 ring-primary-500 text-left 
         transform hover:-translate-y-1 hover:scale-105 ${
         selectable ? "cursor-pointer" : "cursor-default"
       } bg-gradient-to-br ${selected ? selectedClass : colorClass}
+      ${selected ? 'scale-105 -translate-y-1 shadow-xl' : ''}
       `}
       aria-pressed={!!selected}
       aria-label={label}
       onClick={selectable ? onToggle : undefined}
     >
-      {/* Decorative bubble for kid-friendly design - only keeping top one */}
+      {/* Decorative elements */}
       <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-white/40"></div>
       
+      {/* Selection indicator */}
+      {selected && (
+        <div className="absolute -top-2 -right-2 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      )}
+      
       <div className="flex flex-col items-center justify-center gap-3 min-h-[85px]">
-        <div className="text-3xl font-bold text-center bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent drop-shadow-sm">
+        <div className={`text-3xl font-bold text-center ${selected ? 'text-white' : 'bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent'} drop-shadow-sm`}>
           ×{table}
         </div>
         
         <div className="flex items-center gap-4 text-sm justify-center">
           {/* Time badge - always show, use placeholder if no data */}
           <div className="flex flex-col items-center gap-1">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full ${
-              timeRating 
-                ? `${getRatingColors(timeRating).bg} ${getRatingColors(timeRating).border}` 
-                : "bg-gradient-to-b from-slate-200 to-slate-100 border-slate-300"
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full 
+              ${selected ? 'bg-white shadow border-white' : 
+                timeRating 
+                  ? `${getRatingColors(timeRating).bg} ${getRatingColors(timeRating).border}` 
+                  : "bg-gradient-to-b from-slate-200 to-slate-100 border-slate-300"
               } border shadow-sm`} 
               aria-label={medianMs > 0 ? `Average time ${formatMsToSeconds(medianMs)}` : "No time data"}
             >
-              <Timer size={14} className={timeRating ? getRatingColors(timeRating).text : "text-slate-500"} />
-              <span className="font-medium min-w-[24px] text-center">{medianMs > 0 ? formatMsToSeconds(medianMs) : "-"}</span>
+              <Timer size={14} className={selected ? 'text-purple-600' : (timeRating ? getRatingColors(timeRating).text : "text-slate-500")} />
+              <span className={`font-medium min-w-[24px] text-center ${selected ? 'text-purple-600' : ''}`}>
+                {medianMs > 0 ? formatMsToSeconds(medianMs) : "-"}
+              </span>
             </span>
-            <span className={`text-xs font-medium h-4 flex items-center gap-0.5 ${timeRating ? `${getRatingColors(timeRating).text} capitalize` : "text-transparent"}`}>
+            <span className={`text-xs font-medium h-4 flex items-center gap-0.5 
+              ${selected ? 'text-white' : (timeRating ? getRatingColors(timeRating).text : "text-transparent")} capitalize`}
+            >
               {timeRating && <span className="text-sm">{getRatingColors(timeRating).emoji}</span>} {timeRating || "placeholder"}
             </span>
           </div>
           
           {/* Accuracy badge - always show, use placeholder if no data */}
           <div className="flex flex-col items-center gap-1">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full ${
-              accuracyRating 
-                ? `${getRatingColors(accuracyRating).bg} ${getRatingColors(accuracyRating).border}` 
-                : "bg-gradient-to-b from-slate-200 to-slate-100 border-slate-300"
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full 
+              ${selected ? 'bg-white shadow border-white' : 
+                accuracyRating 
+                  ? `${getRatingColors(accuracyRating).bg} ${getRatingColors(accuracyRating).border}` 
+                  : "bg-gradient-to-b from-slate-200 to-slate-100 border-slate-300"
               } border shadow-sm`} 
               aria-label={accuracy > 0 ? `Accuracy ${accuracy}%` : "No accuracy data"}
             >
-              <Target size={14} className={accuracyRating ? getRatingColors(accuracyRating).text : "text-slate-500"} />
-              <span className="font-medium min-w-[30px] text-center">{accuracy > 0 ? `${Math.max(0, Math.min(100, accuracy))}%` : "-"}</span>
+              <Target size={14} className={selected ? 'text-purple-600' : (accuracyRating ? getRatingColors(accuracyRating).text : "text-slate-500")} />
+              <span className={`font-medium min-w-[30px] text-center ${selected ? 'text-purple-600' : ''}`}>
+                {accuracy > 0 ? `${Math.max(0, Math.min(100, accuracy))}%` : "-"}
+              </span>
             </span>
-            <span className={`text-xs font-medium h-4 flex items-center gap-0.5 ${accuracyRating ? `${getRatingColors(accuracyRating).text} capitalize` : "text-transparent"}`}>
+            <span className={`text-xs font-medium h-4 flex items-center gap-0.5 
+              ${selected ? 'text-white' : (accuracyRating ? getRatingColors(accuracyRating).text : "text-transparent")} capitalize`}
+            >
               {accuracyRating && <span className="text-sm">{getRatingColors(accuracyRating).emoji}</span>} {accuracyRating || "placeholder"}
             </span>
           </div>
