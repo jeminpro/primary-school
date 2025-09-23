@@ -74,67 +74,62 @@ function groupAttemptsIntoSessions(attempts: TTAttempt[]): TTAttempt[][] {
 
 // Helpers for stats per table a (1..12)
 export async function getAccuracyForTable(a: number): Promise<number> {
-  // Get all attempts for this table
-  const allAttempts = await ttDB.attempts.where("a").equals(a).toArray();
-  
-  // Group attempts by test session using timestamp proximity
-  const sessions = groupAttemptsIntoSessions(allAttempts);
-  
-  // If no sessions, return 0
-  if (sessions.length === 0) return 0;
-  
-  // Get the most recent session
-  const latestSession = sessions[0]; // Sessions are already sorted newest first
-  
-  // Calculate accuracy for the latest session
-  const correctCount = latestSession.filter(r => r.correct).length;
-  return Math.round((correctCount / latestSession.length) * 100);
+  // Use the latest attempt for each fact (a x b where b = 1..12)
+  const latest = await getLatestAttemptsForTable(a);
+  // Build a map of latest attempts by b
+  const latestByB = new Map<number, TTAttempt>();
+  for (const att of latest) latestByB.set(att.b, att);
+
+  // Count correct among all b = 1..12, treating missing as incorrect
+  let correctCount = 0;
+  for (let b = 1; b <= 12; b++) {
+    const att = latestByB.get(b);
+    if (att && att.correct) correctCount++;
+    // missing attempts count as incorrect
+  }
+
+  return Math.round((correctCount / 12) * 100);
 }
 
 export async function getMedianMsForTable(a: number): Promise<number> {
-  // Get all attempts for this table
-  const allAttempts = await ttDB.attempts.where("a").equals(a).toArray();
-  
-  // Group attempts by test session using timestamp proximity
-  const sessions = groupAttemptsIntoSessions(allAttempts);
-  
-  // If no sessions, return 0
-  if (sessions.length === 0) return 0;
-  
-  // Get the most recent session
-  const latestSession = sessions[0]; // Sessions are already sorted newest first
-  
-  // Filter for correct answers only
-  const correctAttempts = latestSession.filter(r => r.correct);
+  // Use the latest attempt for each fact (a x b where b = 1..12)
+  const latest = await getLatestAttemptsForTable(a);
+  if (latest.length === 0) return 0;
+  const correctAttempts = latest.filter(r => r.correct);
   if (correctAttempts.length === 0) return 0;
-  
-  // Calculate median time for correct answers in the latest session
   const times = correctAttempts.map(r => r.elapsedMs).sort((x, y) => x - y);
   const mid = Math.floor(times.length / 2);
   return times.length % 2 ? times[mid] : Math.round((times[mid - 1] + times[mid]) / 2);
 }
 
 export async function getAverageMsForTable(a: number): Promise<number> {
-  // Get all attempts for this table
-  const allAttempts = await ttDB.attempts.where("a").equals(a).toArray();
-  
-  // Group attempts by test session using timestamp proximity
-  const sessions = groupAttemptsIntoSessions(allAttempts);
-  
-  // If no sessions, return 0
-  if (sessions.length === 0) return 0;
-  
-  // Get the most recent session
-  const latestSession = sessions[0]; // Sessions are already sorted newest first
-  
-  // Filter for correct answers only
-  const correctAttempts = latestSession.filter(r => r.correct);
+  // Use the latest attempt for each fact (a x b where b = 1..12)
+  const latest = await getLatestAttemptsForTable(a);
+  if (latest.length === 0) return 0;
+  const correctAttempts = latest.filter(r => r.correct);
   if (correctAttempts.length === 0) return 0;
-  
-  // Calculate average time for correct answers in the latest session
   const times = correctAttempts.map(r => r.elapsedMs);
   const sum = times.reduce((acc, time) => acc + time, 0);
   return Math.round(sum / times.length);
+}
+
+// Return the latest attempt (most recent date) for each fact `a x b` where b = 1..12
+async function getLatestAttemptsForTable(a: number): Promise<TTAttempt[]> {
+  // Fetch all attempts for this table in one query, then pick the latest per `b`.
+  const attempts = await ttDB.attempts.where("a").equals(a).toArray();
+  if (!attempts.length) return [];
+
+  // Map latest attempt per b
+  const latestByB = new Map<number, TTAttempt>();
+  for (const att of attempts) {
+    const existing = latestByB.get(att.b);
+    if (!existing || att.date > existing.date) latestByB.set(att.b, att);
+  }
+
+  // Return as array (sorted by b ascending for determinism)
+  return Array.from(latestByB.entries())
+    .sort((x, y) => x[0] - y[0])
+    .map(([_, v]) => v);
 }
 
 export async function getAttemptCountForTable(a: number): Promise<number> {

@@ -70,6 +70,8 @@ export default function TimesTablesTest() {
     
     if (i + 1 < questions.length) {
       setI(i + 1);
+      // Request the next question input to focus (useful for iOS keyboards)
+      setTimeout(() => window.dispatchEvent(new Event("ts:focus-answer")), 50);
     } else {
       // Test is complete, now record all attempts to the database
       const currentAnswers = [...answers, { a: q.a, b: q.b, value: ans.value, correct: ans.correct, elapsedMs: ans.elapsedMs }];

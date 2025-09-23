@@ -134,7 +134,7 @@ export function ScoreCard({ table, accuracy, medianMs, selectable, selected, onT
             <span className={`text-[11px] sm:text-xs font-medium h-5 flex items-center justify-center gap-0.5 
               ${selected ? 'text-white' : (timeRating ? getRatingColors(timeRating).text : "text-transparent")} capitalize`}
             >
-              <span className="truncate max-w-[60px]">{timeRating || "placeholder"}</span>
+              <span className="truncate max-w-[60px]">{timeRating || ""}</span>
             </span>
           </div>
           
@@ -156,7 +156,7 @@ export function ScoreCard({ table, accuracy, medianMs, selectable, selected, onT
             <span className={`text-[11px] sm:text-xs font-medium h-5 flex items-center justify-center gap-0.5 
               ${selected ? 'text-white' : (accuracyRating ? getRatingColors(accuracyRating).text : "text-transparent")} capitalize`}
             >
-              <span className="truncate max-w-[60px]">{accuracyRating || "placeholder"}</span>
+              <span className="truncate max-w-[60px]">{accuracyRating || ""}</span>
             </span>
           </div>
         </div>
