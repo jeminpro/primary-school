@@ -144,7 +144,7 @@ export default function TimesTablesTest() {
               <h2 className="text-sm sm:text-base font-medium text-indigo-700 mb-1">Choose Your Times Tables</h2>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 Tap one or more cards below to select times tables for your test. 
-                Each card shows your last test accuracy and speed. When ready, tap the "Start" button.
+                Each card shows your last test speed and accuracy. When ready, tap the "Start" button.
               </p>
             </div>
           </div>

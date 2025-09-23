@@ -18,14 +18,14 @@ export function TestToolbar({ selectedCount, total, canStart, onSelectAll, onCle
       <div className="flex flex-wrap items-center justify-between w-full gap-2 sm:gap-3">
         <div className="flex items-center gap-2">
           <button 
-            className="btn btn-xs px-2 text-xs bg-white hover:bg-blue-50 text-indigo-600 border-2 border-indigo-200 hover:border-indigo-400 rounded-full shadow-sm hover:shadow font-medium transition-all duration-200" 
+            className="btn btn-xs md:btn-sm px-2 text-xs bg-white hover:bg-blue-50 text-indigo-600 border-2 border-indigo-200 hover:border-indigo-400 rounded-full shadow-sm hover:shadow font-medium transition-all duration-200" 
             onClick={onSelectAll} 
             aria-label="Select all tables"
           >
             Select All
           </button>
           <button 
-            className="btn btn-xs px-2 text-xs bg-white hover:bg-blue-50 text-indigo-600 border-2 border-indigo-200 hover:border-indigo-400 rounded-full shadow-sm hover:shadow font-medium transition-all duration-200" 
+            className="btn btn-xs md:btn-sm px-2 text-xs bg-white hover:bg-blue-50 text-indigo-600 border-2 border-indigo-200 hover:border-indigo-400 rounded-full shadow-sm hover:shadow font-medium transition-all duration-200" 
             onClick={onClear} 
             aria-label="Clear selection"
           >
@@ -34,7 +34,7 @@ export function TestToolbar({ selectedCount, total, canStart, onSelectAll, onCle
         </div>
         
         <div className="flex items-center gap-2">
-          <span className="text-xs sm:text-base text-indigo-700 font-medium">Questions</span>
+          <span className="text-xs md:text-base text-indigo-700 font-medium">Questions</span>
           <div className="join rounded-full overflow-hidden border-2 border-indigo-200 shadow-sm" role="radiogroup" aria-label="Number of questions">
             {[6, 12, 24].map(n => (
               <button
@@ -42,7 +42,7 @@ export function TestToolbar({ selectedCount, total, canStart, onSelectAll, onCle
                 type="button"
                 role="radio"
                 aria-checked={questionCount === n}
-                className={`px-3 py-1 text-xs font-medium transition-all duration-200 ${
+                className={`px-3 py-1 text-xs md:text-base font-medium transition-all duration-200 ${
                   questionCount === n 
                     ? 'bg-violet-500 text-white' 
                     : 'bg-white text-indigo-700 hover:bg-indigo-50'
@@ -59,7 +59,7 @@ export function TestToolbar({ selectedCount, total, canStart, onSelectAll, onCle
       {/* Start Test button - Always visible at bottom of toolbar */}
       <div className="w-full mt-3 md:mt-0 md:w-auto">
         <button 
-          className={`btn btn-md sm:btn-sm px-6 py-2.5 rounded-full font-medium text-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full
+          className={`btn btn-md px-6 py-2.5 rounded-full font-medium text-white transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 w-full
             ${canStart 
               ? 'bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700' 
               : 'bg-gray-300 cursor-not-allowed'}`} 
