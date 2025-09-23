@@ -36,7 +36,7 @@ export function Summary({ total, correct, medianMs, byTable, onTryAgain }: Props
           </div>
         </div>
         <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-md">
-          <div className="text-sm text-violet-700 font-medium mb-2">Average Time</div>
+          <div className="text-sm text-violet-700 font-medium mb-2">Speed</div>
           <div className="flex flex-col items-start gap-2 sm:gap-3">
             <div className="text-3xl sm:text-4xl font-bold text-slate-800">{formatMsToSeconds(medianMs)}</div>
             <div className="tooltip w-full" data-tip={`${getRatingRange("time", timeRating)}: ${getRatingDescription("time", timeRating)}`}>

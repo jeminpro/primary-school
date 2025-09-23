@@ -117,7 +117,7 @@ export default function TimesTablesTest() {
 
   if (selecting) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 pb-20">
         <TestToolbar
           selectedCount={selected.length}
           total={12}
@@ -141,6 +141,16 @@ export default function TimesTablesTest() {
               onToggle={() => toggle(a)}
             />
           ))}
+        </div>
+        
+        {/* Selection summary - visible only on mobile */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-indigo-100 shadow-lg py-2 px-4 flex justify-between items-center z-40">
+          <div className="text-sm text-indigo-700">
+            <span className="font-medium">{selected.length}</span> of <span>12</span> tables selected
+          </div>
+          <div className="text-xs text-indigo-600">
+            {qCount} questions
+          </div>
         </div>
       </div>
     );

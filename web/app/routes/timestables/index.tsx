@@ -92,31 +92,7 @@ export default function TimesTablesMain() {
           </div>
         </a>
       </div>
-
-      {/* Section title */}
-      <div className="mt-10 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-          <h2 className="text-2xl font-bold">
-            <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Times Tables</span>
-          </h2>
-          <span className="bg-purple-100 text-purple-700 text-sm font-medium rounded-full px-3 py-1 inline-block">Choose one to practice</span>
-        </div>
-      </div>
-
-      {/* Times tables grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-        {rows.sort((x, y) => x.a - y.a).map(r => (
-          <ScoreCard
-            key={r.a}
-            table={r.a}
-            accuracy={r.count ? r.acc : 0}
-            medianMs={r.count ? r.med : 0}
-            selectable
-            selected={false}
-            onToggle={() => navigate("/timestables/test", { state: { preselect: [r.a] } as any })}
-          />
-        ))}
-      </div>
+            
     </div>
   );
 }
