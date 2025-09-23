@@ -39,29 +39,100 @@ export async function recordAttempt(a: number, b: number, correct: boolean, elap
   }
 }
 
+// Helper function to group attempts into test sessions
+function groupAttemptsIntoSessions(attempts: TTAttempt[]): TTAttempt[][] {
+  if (attempts.length === 0) return [];
+  
+  // Sort by date (newest first)
+  const sorted = [...attempts].sort((a, b) => b.date - a.date);
+  
+  // Group into sessions (gap of more than 2 minutes indicates a new test)
+  const SESSION_GAP_MS = 2 * 60 * 1000; // 2 minutes
+  const sessions: TTAttempt[][] = [];
+  let currentSession: TTAttempt[] = [sorted[0]];
+  
+  for (let i = 1; i < sorted.length; i++) {
+    const current = sorted[i];
+    const prev = sorted[i-1];
+    
+    // If gap is too large, start a new session
+    if (prev.date - current.date > SESSION_GAP_MS) {
+      sessions.push(currentSession);
+      currentSession = [current];
+    } else {
+      currentSession.push(current);
+    }
+  }
+  
+  // Add the last session
+  if (currentSession.length > 0) {
+    sessions.push(currentSession);
+  }
+  
+  return sessions;
+}
+
 // Helpers for stats per table a (1..12)
 export async function getAccuracyForTable(a: number): Promise<number> {
-  const attempts = await ttDB.attempts.where("a").equals(a).reverse().sortBy("date");
-  const recent = attempts.slice(-30);
-  if (recent.length === 0) return 0;
-  const correct = recent.filter(r => r.correct).length;
-  return Math.round((correct / recent.length) * 100);
+  // Get all attempts for this table
+  const allAttempts = await ttDB.attempts.where("a").equals(a).toArray();
+  
+  // Group attempts by test session using timestamp proximity
+  const sessions = groupAttemptsIntoSessions(allAttempts);
+  
+  // If no sessions, return 0
+  if (sessions.length === 0) return 0;
+  
+  // Get the most recent session
+  const latestSession = sessions[0]; // Sessions are already sorted newest first
+  
+  // Calculate accuracy for the latest session
+  const correctCount = latestSession.filter(r => r.correct).length;
+  return Math.round((correctCount / latestSession.length) * 100);
 }
 
 export async function getMedianMsForTable(a: number): Promise<number> {
-  const attempts = await ttDB.attempts.where("a").equals(a).reverse().sortBy("date");
-  const recent = attempts.slice(-30).filter(r => r.correct);
-  if (recent.length === 0) return 0;
-  const times = recent.map(r => r.elapsedMs).sort((x, y) => x - y);
+  // Get all attempts for this table
+  const allAttempts = await ttDB.attempts.where("a").equals(a).toArray();
+  
+  // Group attempts by test session using timestamp proximity
+  const sessions = groupAttemptsIntoSessions(allAttempts);
+  
+  // If no sessions, return 0
+  if (sessions.length === 0) return 0;
+  
+  // Get the most recent session
+  const latestSession = sessions[0]; // Sessions are already sorted newest first
+  
+  // Filter for correct answers only
+  const correctAttempts = latestSession.filter(r => r.correct);
+  if (correctAttempts.length === 0) return 0;
+  
+  // Calculate median time for correct answers in the latest session
+  const times = correctAttempts.map(r => r.elapsedMs).sort((x, y) => x - y);
   const mid = Math.floor(times.length / 2);
   return times.length % 2 ? times[mid] : Math.round((times[mid - 1] + times[mid]) / 2);
 }
 
 export async function getAverageMsForTable(a: number): Promise<number> {
-  const attempts = await ttDB.attempts.where("a").equals(a).reverse().sortBy("date");
-  const recent = attempts.slice(-30).filter(r => r.correct);
-  if (recent.length === 0) return 0;
-  const times = recent.map(r => r.elapsedMs);
+  // Get all attempts for this table
+  const allAttempts = await ttDB.attempts.where("a").equals(a).toArray();
+  
+  // Group attempts by test session using timestamp proximity
+  const sessions = groupAttemptsIntoSessions(allAttempts);
+  
+  // If no sessions, return 0
+  if (sessions.length === 0) return 0;
+  
+  // Get the most recent session
+  const latestSession = sessions[0]; // Sessions are already sorted newest first
+  
+  // Filter for correct answers only
+  const correctAttempts = latestSession.filter(r => r.correct);
+  if (correctAttempts.length === 0) return 0;
+  
+  // Calculate average time for correct answers in the latest session
+  const times = correctAttempts.map(r => r.elapsedMs);
   const sum = times.reduce((acc, time) => acc + time, 0);
   return Math.round(sum / times.length);
 }

@@ -128,6 +128,25 @@ export default function TimesTablesTest() {
           questionCount={qCount}
           setQuestionCount={setQCount}
         />
+        
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-3 sm:p-4 rounded-xl shadow-sm border border-indigo-100 mb-3">
+          <div className="flex items-start">
+            <div className="bg-indigo-100 rounded-full p-1.5 mr-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-sm sm:text-base font-medium text-indigo-700 mb-1">Choose Your Times Tables</h2>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                Tap one or more cards below to select times tables for your test. 
+                Each card shows your last test accuracy and speed. When ready, tap the "Start" button.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {Array.from({ length: 12 }, (_, i) => i + 1).map(a => (

@@ -173,8 +173,8 @@ export const getTimeRating = (seconds: number): RatingLevel => {
 };
 
 export const getAccuracyRating = (accuracy: number): RatingLevel => {
-  if (accuracy >= 95) return "excellent";
-  if (accuracy >= 85) return "good";
+  if (accuracy >= 100) return "excellent";
+  if (accuracy >= 90) return "good";
   if (accuracy >= 70) return "average";
   return "bad";
 };
