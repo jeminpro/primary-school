@@ -24,7 +24,7 @@ export default function SpellingTestPage() {
   const [input, setInput] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [inputType, setInputType] = useState<"password" | "text">("password");
+  const [inputType, setInputType] = useState<"email" | "text">("email");
   const [shuffledWords, setShuffledWords] = useState<SpellingTest["words"]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const doneBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -52,7 +52,7 @@ export default function SpellingTestPage() {
   // Focus the input whenever the step (question) changes and we're not on summary
   useEffect(() => {
     if (!showSummary) {
-      setInputType("password");
+      setInputType("email");
       // Delay slightly to ensure DOM is updated before focusing
       const t = setTimeout(() => {
         inputRef.current?.focus();
@@ -83,7 +83,7 @@ export default function SpellingTestPage() {
   function handleNext() {
     setAnswers(a => [...a, input]);
     setInput("");
-    setInputType("password");
+    setInputType("email");
     if (shuffledWords.length && step + 1 < shuffledWords.length) {
       setStep(step + 1);
     } else {
