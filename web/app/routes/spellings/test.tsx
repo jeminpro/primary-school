@@ -145,6 +145,8 @@ export default function SpellingTestPage() {
         </button>
       </div>
       <input
+        type="text"
+        inputMode="none"
         className="input input-bordered w-full text-lg"
         placeholder="Type the word..."
         value={input}
@@ -156,6 +158,7 @@ export default function SpellingTestPage() {
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
+        data-form-type="other"
       />
       <div className="mt-6 flex gap-2 justify-end">
         <button className="btn btn-ghost" onClick={() => navigate("/spellings")}>Cancel</button>
