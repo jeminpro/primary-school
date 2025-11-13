@@ -25,6 +25,7 @@ export default function SpellingTestPage() {
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
   const [shuffledWords, setShuffledWords] = useState<SpellingTest["words"]>([]);
+  const [isReadOnly, setIsReadOnly] = useState(true);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const doneBtnRef = useRef<HTMLButtonElement | null>(null);
 
@@ -52,7 +53,11 @@ export default function SpellingTestPage() {
   useEffect(() => {
     if (!showSummary) {
       // Delay slightly to ensure DOM is updated before focusing
-      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      setIsReadOnly(true);
+      const t = setTimeout(() => {
+        inputRef.current?.focus();
+        setTimeout(() => setIsReadOnly(false), 100);
+      }, 0);
       return () => clearTimeout(t);
     }
   }, [step, showSummary]);
@@ -152,14 +157,18 @@ export default function SpellingTestPage() {
         value={input}
         onChange={e => setInput(e.target.value)}
         ref={inputRef}
+        readOnly={isReadOnly}
+        onFocus={() => {
+          if (isReadOnly) {
+            setTimeout(() => setIsReadOnly(false), 100);
+          }
+        }}
         autoFocus
         onKeyDown={e => { if (e.key === "Enter") handleNext(); }}
-        autoComplete="new-password"
+        autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
-        data-form-type="other"
-        name="spelling-answer"
       />
       <div className="mt-6 flex gap-2 justify-end">
         <button className="btn btn-ghost" onClick={() => navigate("/spellings")}>Cancel</button>
