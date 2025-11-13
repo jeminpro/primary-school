@@ -93,15 +93,6 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                     <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
                     <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
                       <li>
-                        <button 
-                          className={`flex items-center gap-2 ${test.words.length === 0 ? 'btn-disabled' : ''}`}
-                          onClick={() => test.words.length > 0 && onLearn(test)}
-                          disabled={test.words.length === 0}
-                        >
-                          <BookOpen size={16} /> Learn
-                        </button>
-                      </li>
-                      <li>
                         <button className="flex items-center gap-2" onClick={() => onEdit(test)}>
                           <Edit3 size={16} /> Edit
                         </button>
@@ -151,7 +142,14 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                 <div className="flex flex-col items-center gap-2 w-full sm:w-auto">
                   <div className="flex flex-row gap-2 w-full sm:w-auto items-center">
                     <button 
-                      className="btn btn-sm btn-outline font-bold w-full sm:w-auto" 
+                      className="btn btn-sm btn-outline font-bold flex-1 sm:flex-none" 
+                      onClick={() => onLearn(test)}
+                      disabled={test.words.length === 0}
+                    >
+                      <BookOpen size={16} className="mr-1" /> Learn
+                    </button>
+                    <button 
+                      className="btn btn-sm btn-outline font-bold flex-1 sm:flex-none" 
                       onClick={() => onTest(test)}
                       disabled={test.words.length === 0}
                     >
@@ -162,15 +160,6 @@ export function TestList({ tests, results, onLearn, onTest, onEdit }: TestListPr
                       <div className="dropdown dropdown-end">
                         <button tabIndex={0} className="btn btn-sm btn-ghost btn-circle"><MoreVertical size={18} /></button>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-40">
-                          <li>
-                            <button 
-                              className={`flex items-center gap-2 ${test.words.length === 0 ? 'opacity-50 cursor-not-allowed text-base-content/50' : ''}`}
-                              onClick={() => test.words.length > 0 && onLearn(test)}
-                              disabled={test.words.length === 0}
-                            >
-                              <BookOpen size={16} /> Learn
-                            </button>
-                          </li>
                           <li>
                             <button className="flex items-center gap-2" onClick={() => onEdit(test)}>
                               <Edit3 size={16} /> Edit

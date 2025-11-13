@@ -123,7 +123,7 @@ export default function SpellingTestPage() {
             <div key={i} className="flex gap-2 items-center">
               <span className={"badge " + (s.correct ? "badge-success" : "badge-error")}>{s.correct ? "✔" : "✗"}</span>
               <span className="font-semibold">{s.word}</span>
-              <span className="opacity-60">Your answer: "{s.user}"</span>
+              {(s.correct ? "" : <span className="opacity-70">Your answer: "{s.user}"</span>)}
             </div>
           ))}
         </div>
