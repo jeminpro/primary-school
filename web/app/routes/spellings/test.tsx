@@ -25,7 +25,6 @@ export default function SpellingTestPage() {
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
   const [shuffledWords, setShuffledWords] = useState<SpellingTest["words"]>([]);
-  const [isReadOnly, setIsReadOnly] = useState(true);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const doneBtnRef = useRef<HTMLButtonElement | null>(null);
 
@@ -53,11 +52,7 @@ export default function SpellingTestPage() {
   useEffect(() => {
     if (!showSummary) {
       // Delay slightly to ensure DOM is updated before focusing
-      setIsReadOnly(true);
-      const t = setTimeout(() => {
-        inputRef.current?.focus();
-        setTimeout(() => setIsReadOnly(false), 100);
-      }, 0);
+      const t = setTimeout(() => inputRef.current?.focus(), 0);
       return () => clearTimeout(t);
     }
   }, [step, showSummary]);
@@ -151,24 +146,19 @@ export default function SpellingTestPage() {
       </div>
       <input
         type="text"
-        inputMode="text"
         className="input input-bordered w-full text-lg"
         placeholder="Type the word..."
         value={input}
         onChange={e => setInput(e.target.value)}
         ref={inputRef}
-        readOnly={isReadOnly}
-        onFocus={() => {
-          if (isReadOnly) {
-            setTimeout(() => setIsReadOnly(false), 100);
-          }
-        }}
         autoFocus
         onKeyDown={e => { if (e.key === "Enter") handleNext(); }}
-        autoComplete="off"
+        autoComplete="chrome-off"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
+        data-lpignore="true"
+        data-form-type="other"
       />
       <div className="mt-6 flex gap-2 justify-end">
         <button className="btn btn-ghost" onClick={() => navigate("/spellings")}>Cancel</button>
