@@ -146,7 +146,7 @@ export default function SpellingTestPage() {
       </div>
       <input
         type="text"
-        inputMode="none"
+        inputMode="text"
         className="input input-bordered w-full text-lg"
         placeholder="Type the word..."
         value={input}
@@ -154,11 +154,12 @@ export default function SpellingTestPage() {
         ref={inputRef}
         autoFocus
         onKeyDown={e => { if (e.key === "Enter") handleNext(); }}
-        autoComplete="off"
+        autoComplete="new-password"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
         data-form-type="other"
+        name="spelling-answer"
       />
       <div className="mt-6 flex gap-2 justify-end">
         <button className="btn btn-ghost" onClick={() => navigate("/spellings")}>Cancel</button>
