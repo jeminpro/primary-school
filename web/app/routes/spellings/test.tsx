@@ -24,6 +24,7 @@ export default function SpellingTestPage() {
   const [input, setInput] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [inputType, setInputType] = useState<"password" | "text">("password");
   const [shuffledWords, setShuffledWords] = useState<SpellingTest["words"]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const doneBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -51,8 +52,12 @@ export default function SpellingTestPage() {
   // Focus the input whenever the step (question) changes and we're not on summary
   useEffect(() => {
     if (!showSummary) {
+      setInputType("password");
       // Delay slightly to ensure DOM is updated before focusing
-      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      const t = setTimeout(() => {
+        inputRef.current?.focus();
+        setInputType("text");
+      }, 100);
       return () => clearTimeout(t);
     }
   }, [step, showSummary]);
@@ -78,6 +83,7 @@ export default function SpellingTestPage() {
   function handleNext() {
     setAnswers(a => [...a, input]);
     setInput("");
+    setInputType("password");
     if (shuffledWords.length && step + 1 < shuffledWords.length) {
       setStep(step + 1);
     } else {
@@ -145,7 +151,7 @@ export default function SpellingTestPage() {
         </button>
       </div>
       <input
-        type="text"
+        type={inputType}
         className="input input-bordered w-full text-lg"
         placeholder="Type the word..."
         value={input}
@@ -153,7 +159,7 @@ export default function SpellingTestPage() {
         ref={inputRef}
         autoFocus
         onKeyDown={e => { if (e.key === "Enter") handleNext(); }}
-        autoComplete="chrome-off"
+        autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
