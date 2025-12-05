@@ -1,32 +1,71 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingResult } from "../../lib/spellings-db";
-import { Plus, MoreVertical, Download, Upload } from "lucide-react";
+import { Plus, MoreVertical, Download, Upload, Loader2 } from "lucide-react";
 import { TestList } from "./test-list";
+import { fetchSpellingTestsFromGoogleSheets } from "../../lib/google-sheets-sync";
 
 export default function SpellingsMainPage() {
   const [tests, setTests] = useState<SpellingTest[]>([]);
   const [results, setResults] = useState<Record<number, SpellingResult[]>>({});
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
-    async function load() {
-      let allTests = await spellingsDB.tests.toArray();
-      allTests = allTests.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    
+    async function loadFromIndexedDB() {
+      const allTests = await spellingsDB.tests.toArray();
+      const sortedTests = allTests.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       const allResults = await spellingsDB.results.toArray();
       const grouped: Record<number, SpellingResult[]> = {};
       for (const r of allResults) {
         if (!grouped[r.testId]) grouped[r.testId] = [];
         grouped[r.testId].push(r);
       }
+      return { tests: sortedTests, results: grouped };
+    }
+
+    async function load() {
+      // First, load from IndexedDB immediately
+      const localData = await loadFromIndexedDB();
       if (mounted) {
-        setTests(allTests);
-        setResults(grouped);
+        setTests(localData.tests);
+        setResults(localData.results);
         setLoading(false);
       }
+
+      // Then, fetch from Google Sheets in the background and sync
+      setSyncing(true);
+      try {
+        const googleSheetsData = await fetchSpellingTestsFromGoogleSheets();
+        if (googleSheetsData.length > 0 && mounted) {
+          // Update IndexedDB with data from Google Sheets
+          for (const record of googleSheetsData) {
+            const testData = {
+              ...record.value,
+              id: record.id,
+            } as SpellingTest;
+            await spellingsDB.tests.put(testData);
+          }
+          
+          // Reload from IndexedDB to show updated data
+          const updatedData = await loadFromIndexedDB();
+          if (mounted) {
+            setTests(updatedData.tests);
+            setResults(updatedData.results);
+          }
+        }
+      } catch (error) {
+        console.error("Error syncing from Google Sheets:", error);
+      } finally {
+        if (mounted) {
+          setSyncing(false);
+        }
+      }
     }
+    
     load();
     return () => { mounted = false; };
   }, []);
@@ -147,7 +186,10 @@ export default function SpellingsMainPage() {
   return (
     <div className="bg-white rounded-xl shadow p-6">
       <div className="flex items-center justify-between mb-4">
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate("/")}>← Back</button>
+        <div className="flex items-center gap-2">
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate("/")}>← Back</button>
+          {syncing && <Loader2 size={16} className="animate-spin text-primary" />}
+        </div>
         <div className="flex items-center gap-2">
           <button className="btn btn-primary btn-sm flex items-center gap-2" onClick={handleAdd}>
             <Plus size={16} />
