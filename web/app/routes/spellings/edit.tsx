@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Trash2, Plus } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
 import { spellingsDB, type SpellingTest, type SpellingWord } from "../../lib/spellings-db";
+import { syncToGoogleSheets } from "../../lib/google-sheets-sync";
 
 function emptyWord(): SpellingWord {
   return { word: "", sentence: "" };
@@ -73,11 +74,20 @@ export default function EditSpellingTest() {
         createdAt: editingTest?.createdAt || Date.now(),
         updatedAt: Date.now(),
       };
+      let testId: number;
+      let savedTest: SpellingTest;
       if (editingTest?.id) {
-        await spellingsDB.tests.put({ ...test, id: editingTest.id });
+        savedTest = { ...test, id: editingTest.id };
+        await spellingsDB.tests.put(savedTest);
+        testId = editingTest.id;
       } else {
-        await spellingsDB.tests.add(test);
+        testId = await spellingsDB.tests.add(test);
+        savedTest = { ...test, id: testId };
       }
+      
+      const payload = {...test, postAction: "SpellingTest" };
+      syncToGoogleSheets(payload);
+      
       navigate("/spellings");
     } catch (err) {
       setError("Failed to save test. Please try again.");

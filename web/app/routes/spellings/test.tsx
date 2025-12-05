@@ -167,7 +167,6 @@ export default function SpellingTestPage() {
         data-form-type="other"
       />
       <div className="mt-6 flex gap-2 justify-end">
-        <button className="btn btn-ghost" onClick={() => navigate("/spellings")}>Cancel</button>
         <button className="btn btn-primary" onClick={handleNext} disabled={!input.trim()}>Next</button>
       </div>
     </div>
